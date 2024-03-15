@@ -1,0 +1,3013 @@
+Program.Sub.ScreenSU.Start
+Gui.f_PO..Create
+Gui.f_PO..Caption("Purchasing Dashboard")
+Gui.f_PO..Size(15360,10695)
+Gui.f_PO..MinX(0)
+Gui.f_PO..MinY(0)
+Gui.f_PO..Position(0,0)
+Gui.f_PO..BackColor(-2147483633)
+Gui.f_PO..MousePointer(0)
+Gui.f_PO..Event(UnLoad,f_PO_UnLoad)
+Gui.f_PO..Event(Resize,F_PO_Resize)
+Gui.f_PO.lbl1.Create(Label,"WO Start",True,1935,255,0,105,300,True,0,"Arial",8,-2147483633,0)
+Gui.f_PO.txtWOStart.Create(TextBox,"",True,1215,300,0,90,510,True,0,"Arial",8,-2147483643,1)
+Gui.f_PO.txtWOSuffStart.Create(TextBox,"",True,600,300,0,1350,510,True,0,"Arial",8,-2147483643,1)
+Gui.f_PO.cmdWOStart.Create(Button)
+Gui.f_PO.cmdWOStart.Size(390,375)
+Gui.f_PO.cmdWOStart.Position(1995,480)
+Gui.f_PO.cmdWOStart.Caption("^")
+Gui.f_PO.cmdWOStart.Event(Click,cmdWOStart_Click)
+Gui.f_PO.lbl2.Create(Label,"WO End",True,1935,255,0,2460,285,True,0,"Arial",8,-2147483633,0)
+Gui.f_PO.txtWOEnd.Create(TextBox,"",True,1215,300,0,2475,510,True,0,"Arial",8,-2147483643,1)
+Gui.f_PO.txtWOSuffEnd.Create(TextBox,"",True,600,300,0,3735,510,True,0,"Arial",8,-2147483643,1)
+Gui.f_PO.cmdWOEnd.Create(Button)
+Gui.f_PO.cmdWOEnd.Size(390,375)
+Gui.f_PO.cmdWOEnd.Position(4380,480)
+Gui.f_PO.cmdWOEnd.Caption("^")
+Gui.f_PO.cmdWOEnd.Event(Click,cmdWOEnd_Click)
+Gui.f_PO.GsGCPO.Create(GsGridControl)
+Gui.f_PO.GsGCPO.Size(15015,8940)
+Gui.f_PO.GsGCPO.Position(60,1110)
+Gui.f_PO.GsGCPO.Anchor(15)
+Gui.f_PO.GsGCPO.Event(RowCellClick,Hyperlinks)
+Gui.f_PO.GsGCPO.Event(CellValueChanged,GsGCPO_CellValueChanged)
+Gui.f_PO.GsGCPO.Event(ColumnFilterChanged,GsGCWO_ColumnFilterChanged)
+Gui.f_PO.cmdBrowseSpreadsheet.Create(Button)
+Gui.f_PO.cmdBrowseSpreadsheet.Size(1950,645)
+Gui.f_PO.cmdBrowseSpreadsheet.Position(13140,210)
+Gui.f_PO.cmdBrowseSpreadsheet.Anchor(9)
+Gui.f_PO.cmdBrowseSpreadsheet.Caption("Upload Pricing and Vendor for Parts")
+Gui.f_PO.cmdBrowseSpreadsheet.BackColor(2263842)
+Gui.f_PO.cmdBrowseSpreadsheet.ForeColor(16777215)
+Gui.f_PO.cmdBrowseSpreadsheet.FontStyle(True,False,False,False,False)
+Gui.f_PO.cmdBrowseSpreadsheet.Event(Click,cmdBrowseSpreadsheet_Click)
+Gui.f_PO.cmdBrowseSpreadsheet.Enabled(False)
+Gui.f_PO.picGSSLogo.Create(PictureBox)
+Gui.f_PO.picGSSLogo.Size(4125,960)
+Gui.f_PO.picGSSLogo.Position(5625,75)
+Gui.f_PO.frmProg.Create(Frame)
+Gui.f_PO.frmProg.Visible(False)
+Gui.f_PO.frmProg.Size(2460,765)
+Gui.f_PO.frmProg.Position(9825,135)
+Gui.f_PO.frmProg.Anchor(9)
+Gui.f_PO.progBarStatus.Create(ProgressBar)
+Gui.f_PO.progBarStatus.Size(2355,255)
+Gui.f_PO.progBarStatus.Position(60,405)
+Gui.f_PO.progBarStatus.Parent("frmProg")
+Gui.f_PO.lblStatus.Create(Label,"Loading PO Data....",True,1935,255,0,45,180,True,0,"Arial",8,-2147483633,0)
+Gui.f_PO.lblStatus.Parent("frmProg")
+Gui.f_PO.cmdRefresh.Create(Button)
+Gui.f_PO.cmdRefresh.Size(390,375)
+Gui.f_PO.cmdRefresh.Position(4920,480)
+Gui.f_PO.cmdRefresh.Caption("REFRESH")
+Gui.f_PO.cmdRefresh.Event(Click,cmdRefresh_Click)
+Gui.f_PO.lblMode.Create(Label,"",True,1935,255,0,120,885,True,0,"Arial",8,-2147483633,0)
+Gui.f_PO.lblMode.FontStyle(True,True,False,False,False)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+	v.global.bFormLoaded.Declare(boolean,False)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Author: Daniel Duncan
+'Customer: C3 Corporation
+'Program Name: Custom Purchasing Dashboard
+'Date Started: 9/12/2019
+'Description: This dashboard allows the buyer to focus on grouping purchase-to-job components by vendor and tracking the status of the PO after creation, such as if it was sent, confirmed, when it is promised, how much was received, 
+'and what the net open quantity is at any given time.  The buyer can manually fill in price, due date, and vendor.  Optionally, the price and vendor can be uploaded from a spreadsheet by part.  The customer requested that each line for 
+'a given part has the same cost and vendor, and each line of a given PO has the same due date.  The user has multiple options in the context menus for performing multi-row selection, and each row selected can be grouped into PO's by 
+'vendor.
+'Quote: 11713
+'GAP: 5672
+
+'Additions by FEQ.
+'Customer: C3 Corporation
+'Quote: 12015
+'Want to be able to allocate existing parts in inventory to work orders. We are going to 
+'Want to display where these allocated parts came from (What bins)
+
+'CHANGE LOG
+'	1/27/20 - DD - Added WIP Bin columns and security permissions to the project
+	f.Intrinsic.Control.Try
+		v.Local.sIcon.Declare
+		V.Local.sGssLogo.Declare
+		V.Local.sParams.Declare(String, "")
+		
+		F.Intrinsic.String.Build("{0}\ART\gss2.ico",V.Caller.GlobalDir,v.Local.sIcon)		
+		F.Intrinsic.String.Build("{0}\ART\GAB_GSS_Logo_Green_Dash.png",V.Caller.GlobalDir,V.Local.sGssLogo)
+		gui.f_PO.picGSSLogo.Picture(v.Local.sGssLogo)
+		gui.f_PO..Icon(V.Local.sIcon)
+		F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+		
+		f.Intrinsic.Control.CallSub(Initialize)
+		f.Intrinsic.Control.CallSub(GetVendors)
+		f.Intrinsic.Control.CallSub(SetContextMenus)
+		f.Intrinsic.Control.CallSub(GetCompanyShipTo)
+		
+		GUI.f_PO..Show
+		F.Intrinsic.Control.CallSub(Deserialize)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+'--------FORM EVENTS---------
+Program.Sub.F_PO_Resize.Start
+	F.Intrinsic.Control.Try
+		V.Local.sError.Declare
+		V.Local.iX.Declare
+		
+		F.Intrinsic.Math.Div(V.Screen.F_PO.Width,2,V.Local.iX)
+		F.Intrinsic.Math.Sub(V.Local.iX,2000,V.Local.iX)
+		gui.F_PO.picGSSLogo.Position(V.Local.iX,45)
+	
+		'Let Form grow larger than 15360, but not lower
+		F.Intrinsic.Control.If(V.Screen.F_PO.Width,<,15360)
+			gui.F_PO..Size(15360,V.Screen.F_PO.Height)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.Finally
+		gui.f_PO..SetFocus
+	F.Intrinsic.Control.EndTry
+Program.Sub.F_PO_Resize.End
+
+Program.Sub.f_PO_UnLoad.Start
+	F.Intrinsic.Control.If(V.Global.bFormLoaded)
+		F.Intrinsic.Control.CallSub(Serialize)
+	F.Intrinsic.Control.EndIf
+	f.Data.DataTable.Close("dtVendMstr")
+	f.Intrinsic.Control.End
+Program.Sub.f_PO_UnLoad.End
+
+Program.Sub.Hyperlinks.Start
+	F.Intrinsic.Control.Try
+		V.Local.sError.Declare
+		v.Local.sRet.Declare(string)
+		V.Local.sRecord.Declare
+		V.Local.sPO.Declare
+		V.Local.sSO.Declare
+		V.Local.sParams.Declare
+		v.Local.sPart.Declare(string)
+		v.Local.sLoc.Declare(string)
+		v.Local.iVendCodeCol.Declare(string)
+		v.Local.iVendNameCol.Declare(string)
+		V.Local.fQuant.Declare(Float, 0.0)
+		
+		'Columns to not allow editing if PO has been cut: PO_Due_Date, Cost, Name_Vendor, Vendor_Code
+		F.Intrinsic.Control.SelectCase(V.Args.Column.UCase)
+			F.Intrinsic.Control.Case("PART")
+				'Launch Supply & Demand
+				f.Intrinsic.String.RPad(v.DataTable.dtInvCheck(v.Args.rowindex).PART!FieldVal," ",20,v.Local.sPart)
+				f.Intrinsic.String.RPad(v.DataTable.dtInvCheck(v.Args.rowindex).LOCATION!FieldVal," ",2,v.Local.sLoc)
+				F.Intrinsic.String.ConcatCallWrapperArgs(v.Local.sPart,v.Local.sLoc,V.Local.sParams)
+				F.Global.General.CallWrapperSync(300010,V.Local.sParams)
+			F.Intrinsic.Control.Case("PO")
+				'Launch PO in either edit or view mode based on user permissions
+				f.Intrinsic.Control.If(v.DataTable.dtInvCheck(v.Args.rowindex).PO!FieldVal,!=,"")
+					F.Intrinsic.String.Split(V.DataTable.dtInvCheck(V.Args.rowindex).PO!FieldVal,"-",V.Local.sRecord)
+					f.Intrinsic.Control.If(v.Screen.f_PO!lblStatus.caption,=,"Mode: Edit")
+						F.Intrinsic.String.ConcatCallWrapperArgs("O",V.Local.sRecord(0).Trim,"",V.Local.sParams)
+					f.Intrinsic.Control.Else
+						F.Intrinsic.String.ConcatCallWrapperArgs("V",V.Local.sRecord(0).Trim,"",V.Local.sParams)
+					f.Intrinsic.Control.EndIf
+					F.Global.General.CallWrapperASync(175200,V.Local.sParams)
+				f.Intrinsic.Control.EndIf
+			f.Intrinsic.Control.CaseANY("VENDOR_CODE","NAME_VENDOR")		
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",v.Args.rowindex,v.Local.sPO)
+				f.Intrinsic.Control.If(v.Local.sPO,=,"")
+				
+					f.Intrinsic.Control.If(v.Screen.f_PO!lblMode.text,=,"Mode: Edit")
+						F.Intrinsic.UI.Browser(300,"",v.Local.sRet)
+						f.Intrinsic.Control.If(v.Local.sRet,!=,"***CANCEL***")
+							f.Intrinsic.String.Split(v.Local.sRet,"*!*",v.Local.sRet)
+							gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","NAME_VENDOR",V.Local.iVendNameCol)
+							gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","VENDOR_CODE",V.Local.iVendCodeCol)
+							f.Intrinsic.String.Trim(v.Local.sRet(0),v.Local.sRet(0))
+							f.Intrinsic.String.Trim(v.Local.sRet(1),v.Local.sRet(1))
+							F.Intrinsic.String.UCase(V.LOCAL.sRet(1),V.Local.SRET(1))
+							gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iVendNameCol,v.Args.rowindex,v.Local.sret(1))
+							gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iVendCodeCol,v.Args.rowindex,v.Local.sret(0))
+							
+							'Handles the automatic cell value changes
+							f.Intrinsic.Control.CallSub(CopyChangesToOtherRows, "Column", "NAME_VENDOR", "rowIndex", v.Args.rowindex)
+						f.Intrinsic.Control.EndIf
+					f.Intrinsic.Control.EndIf
+				f.Intrinsic.Control.Else
+					f.Intrinsic.UI.Msgbox("Selection of vendor is not allowed after PO has been cut")
+				f.Intrinsic.Control.EndIf
+			f.Intrinsic.Control.CaseANY("PO_SENT","PO_CONF")
+				'Sent and Conf are set to update at the same time for all matching PO lines, so we only have to call this sub once
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",v.Args.rowindex,v.Local.sPO)
+				f.Intrinsic.Control.If(v.Local.sPO,=,"")
+					f.Data.DataTable.SetValue("dtinvcheck",v.Args.rowindex,v.Args.column,False)
+					f.Data.DataTable.acceptchanges("dtinvcheck")
+				f.Intrinsic.Control.EndIf
+				f.Intrinsic.Control.CallSub(CopyChangesToOtherRows, "Column", v.Args.column, "RowIndex", v.Args.rowindex)
+				
+			F.Intrinsic.Control.Case("ALLOCBUTT")
+				'We are going to grab the part number, the location, Job, Suffix, Seq and do a part allocation 
+				Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","Qty_Required",v.Args.rowindex,v.Local.fQuant)
+				
+				F.Intrinsic.Control.If(V.Local.fQuant, >, 0)
+					F.Intrinsic.Control.CallSub(PartAllocation, "ROWINDEX", V.Args.RowIndex)
+				F.Intrinsic.Control.EndIf
+				
+		F.Intrinsic.Control.EndSelect
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.EndTry
+Program.Sub.Hyperlinks.End
+
+Program.Sub.GsGCPO_CellValueChanged.Start
+	'Handles manual entry of data	
+	f.Intrinsic.Control.Try	
+		v.Local.bVal.Declare(boolean)
+		v.Local.iColIndex.Declare(long)
+		
+		'When this event fires on a boolean field, the value has not yet been committed to the gridview, nor the datatable.  So, flip the value before copying to other rows.
+		f.Intrinsic.Control.If(v.args.column,=,"PO_Sent")
+			gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","PO_SENT",v.Local.iColIndex)
+			gui.f_PO.GsGCPO.GetCellValue("gvInvCheck",v.Local.iColIndex,v.Args.rowindex,v.Local.bVal)
+			f.Intrinsic.Control.If(v.Local.bVal,=,True)
+				v.Local.bVal.Set(False)
+			f.Intrinsic.Control.Else
+				v.Local.bVal.Set(True)
+			f.Intrinsic.Control.EndIf
+			f.Data.DataTable.SetValue("dtinvcheck",v.Args.rowindex,"PO_Sent",False)
+			gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iColIndex,v.Args.rowindex,v.Local.bVal)
+		F.Intrinsic.Control.ElseIf(V.Args.COLUMN,=,"PO_Conf")
+			gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","PO_Conf",v.Local.iColIndex)
+			gui.f_PO.GsGCPO.GetCellValue("gvInvCheck",v.Local.iColIndex,v.Args.rowindex,v.Local.bVal)
+			f.Intrinsic.Control.If(v.Local.bVal,=,True)
+				v.Local.bVal.Set(False)
+			f.Intrinsic.Control.Else
+				v.Local.bVal.Set(True)
+			f.Intrinsic.Control.EndIf
+			f.Data.DataTable.SetValue("dtinvcheck",v.Args.rowindex,"PO_Conf",False)
+			gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iColIndex,v.Args.rowindex,v.Local.bVal)
+		f.Intrinsic.Control.EndIf
+		f.Data.DataTable.acceptchanges("dtInvCheck")
+		
+		f.Intrinsic.Control.CallSub(CopyChangesToOtherRows, "Column", v.Args.column, "RowIndex", v.Args.rowindex)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.GsGCPO_CellValueChanged.End
+
+Program.Sub.cmdRefresh_Click.Start
+	f.Intrinsic.Control.Try
+		f.Intrinsic.Control.If(v.Global.bFormLoaded)
+			F.Intrinsic.Control.CallSub(Serialize)
+			
+			f.Intrinsic.Control.CallSub(ReloadDT)
+			F.Intrinsic.Control.CallSub(Deserialize)
+		f.Intrinsic.Control.Else
+			f.Intrinsic.Control.CallSub(LoadDT)
+			F.Intrinsic.Control.CallSub(Deserialize)
+		f.Intrinsic.Control.EndIf
+		
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.cmdRefresh_Click.End
+
+Program.Sub.cmdBrowseSpreadsheet_Click.Start
+f.Intrinsic.Control.Try
+	v.Local.bExists.Declare(boolean)
+	v.Local.iCnt.Declare(long,1)
+	v.Local.iNumRows.Declare(long)
+	v.Local.sFileName.Declare(string)
+	v.Local.sRet.Declare(string)
+	v.Local.iCnt2.Declare(string)
+	v.Local.iPartCol.Declare(long,-1)
+	v.Local.iVendorCol.Declare(long,-1)
+	v.Local.iPOCol.Declare(long,-1)
+	v.Local.iCostCol.Declare(long,-1)
+	v.Local.iRowCnt.Declare(long)
+	v.Local.sPart.Declare(string)
+	v.Local.sFilter.Declare(string)
+	v.Local.sColHeading.Declare(string)
+	v.Local.sPO.Declare(string)
+	v.Local.bExcel.Declare(boolean)
+	
+	F.Intrinsic.UI.ShowOpenFileDialog("", "","524288",v.Local.sFileName)
+	f.Intrinsic.Control.If(v.Local.sFileName,!=,"***CANCEL***")
+		f.Intrinsic.UI.InvokeWaitDialog("Uploading part vendor and pricing...")
+		
+		'Set the dataview filter to all parts with a PO attached.  Use it to create a new datatable, then add the parts from the spreadsheet.
+		f.Data.DataView.SetFilter("dtinvcheck","dvInvCheck","PO<>''")
+		
+		f.Intrinsic.Control.If(v.DataTable.dtVendorCost.Exists,=,True)
+			f.Data.DataTable.Close("dtvendorcost")
+		f.Intrinsic.Control.EndIf
+		f.Data.DataView.ToDataTableDistinct("dtinvcheck","dvInvCheck","dtVendorCost","PartPO*!*Vendor_Code*!*Amt_Cost",True)
+		
+		'Browse for the spreadsheet, key on Part to get Cost and vendor
+		f.Automation.MSExcel.CheckPresence(v.Local.bExists)
+		
+		f.Intrinsic.Control.If(v.local.bExists)
+			f.Automation.MSExcel.CreateAppObject("MsExcel")
+			f.Automation.MSExcel.OpenWorkbook("MsExcel","xlWkbk",v.Local.sFileName)
+			f.Automation.MSExcel.OpenWorksheet("xlWkbk","xlWkst",1)
+			f.Automation.MSExcel.RowCount("xlWkst",v.Local.iNumRows)
+			
+			f.Intrinsic.Control.For(v.Local.iCnt,1,v.Local.iNumRows)
+				f.Automation.MSExcel.ReadRow("xlWkst",v.Local.iCnt,1,10,v.Local.sRet)
+				f.Intrinsic.String.Split(v.Local.sRet,"*!*",v.Local.sRet)
+				
+				'First row is column headings
+				f.Intrinsic.Control.If(v.Local.iCnt,=,1)
+					f.Intrinsic.Control.For(v.Local.iCnt2,0,v.Local.sRet.UBound,1)
+					f.Intrinsic.String.UCase(v.Local.sRet(v.Local.icnt2),v.Local.sColHeading)
+						f.Intrinsic.Control.SelectCase(v.Local.sColHeading)
+							f.Intrinsic.Control.Case("PART")
+								v.Local.iPartCol.Set(v.Local.iCnt2)
+							f.Intrinsic.Control.Case("VENDOR #")
+								v.Local.iVendorCol.Set(v.Local.iCnt2)
+							f.Intrinsic.Control.Case("PRICE")
+								v.Local.iCostCol.Set(v.Local.iCnt2)
+						f.Intrinsic.Control.EndSelect
+					f.Intrinsic.Control.Next(v.Local.iCnt2)
+					
+					f.Intrinsic.Control.If(v.Local.iPartCol,<,0,"OR",V.Local.iVendorCol,<,0,V.Local.iCostCol,<,0)
+						f.Intrinsic.UI.Msgbox("Could not find columns needed to complete the upload: Part, Vendor #, & Price")
+						f.Intrinsic.UI.CloseWaitDialog
+						f.Automation.MSExcel.DestroyAllObjects("MSExcel","xlWkbk","xlWkst")
+						F.Intrinsic.Control.ExitSUB
+					f.Intrinsic.Control.EndIf
+				f.Intrinsic.Control.Else
+					'Throwing Try on this for localized error handling in case the vendor added already exists
+					f.Intrinsic.Control.Try
+						f.Data.DataTable.AddRow("dtVendorCost","PartPO",v.Local.sRet(v.Local.iPartCol),"Vendor_Code",v.Local.sRet(v.Local.iVendorCol),"Amt_Cost",v.Local.sRet(v.Local.iCostCol))
+					f.Intrinsic.Control.EndTry
+				f.Intrinsic.Control.EndIf
+			f.Intrinsic.Control.Next(v.Local.iCnt)
+
+			v.Local.iCnt.Set(0)
+			v.Local.iCnt2.Set(0)
+			
+			f.Data.DataTable.acceptchanges("dtinvcheck")
+			gui.f_PO.GsGCPO.GetRowCount("gvInvCheck",v.Local.iRowCnt)
+			'GetRowCount is doubling the number of rows it counts, for some reason.  So, divide it in half, then subtract 1.
+			f.Intrinsic.Math.Evaluate("[v.local.irowcnt]/2-1",v.Local.iRowCnt)
+			gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","Part",v.Local.iPartCol)
+			gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","Vendor_Code",v.Local.iVendorCol)
+			gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","Amt_Cost",v.Local.iCostCol)
+			gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","PO",v.Local.iPOCol)
+			f.Data.DataTable.acceptchanges("dtInvCheck")
+			
+			f.Data.Dictionary.createfromdatatable("dictVendXL","dtVendorCost","PartPO","Vendor_Code")
+			f.Data.Dictionary.createfromdatatable("dictCostXL","dtVendorCost","PartPO","Amt_Cost")
+			f.Data.Dictionary.SetDefaultReturn("dictVendXL","")
+			f.Data.Dictionary.SetDefaultReturn("dictCostXL",0.00)
+			
+			f.Data.DataTable.FillFromDictionary("dtinvcheck","dictVendXL","PartPO","Vendor_Code")
+			f.Data.DataTable.FillFromDictionary("dtinvcheck","dictCostXL","PartPO","Amt_Cost")
+			
+			f.Data.Dictionary.Close("dictVendXL")
+			f.Data.Dictionary.Close("dictCostXL")
+		
+			f.Intrinsic.Control.CallSub("FillInVendorInfo", "DT", "dtInvCheck", "Source", "Code")
+		f.Intrinsic.Control.Else
+			f.Intrinsic.UI.Msgbox("Microsoft Excel must be installed to run this option!")
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.Finally
+	f.Automation.MSExcel.DestroyAllObjects("MSExcel","xlWkbk","xlWkst")
+	f.Intrinsic.UI.CloseWaitDialog
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdBrowseSpreadsheet_Click.End
+
+Program.Sub.cmdWOStart_Click.Start
+f.Intrinsic.Control.Try
+	'Browser
+	v.Local.sRet.Declare(string)
+	v.Local.sTemp.Declare(string)
+	v.Local.sTitles.Declare(string)
+	v.Local.iWidths.Declare(long)
+	v.Local.sBegWO.Declare(string)
+	v.Local.sEndWO.Declare(string)
+	v.Local.sEndSuff.Declare(string)
+	
+	f.Intrinsic.String.Split("Job*!*Suffix*!*Part*!*Description*!*Customer*!*Due Date","*!*",v.local.sTitles)
+	f.Intrinsic.String.Split("1000*!*800*!*2000*!*3000*!*800*!*1000","*!*",v.local.iWidths)
+	
+	f.ODBC.Connection!con.opencompanyconnection
+		f.Intrinsic.UI.Browser("Select a job","con","Select Job, Suffix, Part, Description, Customer, Date_Due From V_JOB_HEADER where date_closed ='1900-01-01' ORDER BY JOB, SUFFIX;",v.Local.sTitles,v.Local.iWidths,v.Local.sRet)
+	f.ODBC.Connection!con.Close
+	
+	f.Intrinsic.Control.If(v.Local.sRet,!=,"***CANCEL***")
+		f.Intrinsic.String.Trim(V.Screen.f_PO!txtWOSuffEnd.text,v.Local.sEndSuff)
+		f.Intrinsic.String.Split(v.Local.sRet,"*!*",v.Local.sRet)
+		v.Local.sBegWO.Set(v.Local.sRet(0))
+		v.Local.sEndWO.Set(v.Screen.f_PO!txtWOEnd.Text)
+		
+		f.Intrinsic.Control.If(v.Screen.f_PO!txtWOEnd.text,!=,"")	
+			'Ensure the beg WO is smaller val than ending WO
+			f.Intrinsic.Control.If(v.Local.sRet(1).trim,=,"","or",v.Local.sEndSuff,=,"")
+				v.Local.sEndWO.Set(v.Screen.f_PO!txtWOEnd.Text)
+				v.Local.sBegWO.Set(v.Local.sRet(0))
+			f.Intrinsic.Control.Else
+				f.Intrinsic.String.Build("{0}{1}",v.Local.sRet(0),v.Local.sRet(1),v.Local.sBegWO)
+				f.Intrinsic.String.Build("{0}{1}",v.Screen.f_PO!txtWOEnd.text,v.Screen.f_PO!txtWOSuffEnd.text,v.Local.sEndWO)
+			f.Intrinsic.Control.EndIf
+			
+			f.Intrinsic.Control.If(v.Local.sEndWO.long,<,v.Local.sBegWO.Long)
+				f.Intrinsic.UI.Msgbox("Starting WO must be smaller value than ending WO")
+				f.Intrinsic.Control.ExitSub
+			f.Intrinsic.Control.EndIf
+		f.Intrinsic.Control.EndIf
+		
+		gui.f_PO.txtWOStart.Text(v.Local.sRet(0))
+		gui.f_PO.txtWOSuffStart.Text(v.Local.sRet(1))
+		
+		f.Intrinsic.Control.If(v.Screen.f_PO!txtWOEnd.text,=,"")
+			gui.f_PO.txtWOEnd.Text(v.Local.sRet(0))
+			gui.f_PO.txtWOSuffEnd.Text(v.Local.sRet(1))
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdWOStart_Click.End
+
+Program.Sub.cmdWOEnd_Click.Start
+f.Intrinsic.Control.Try
+	'Browser
+	v.Local.sRet.Declare(string)
+	v.Local.sTemp.Declare(string)
+	v.Local.sTitles.Declare(string)
+	v.Local.iWidths.Declare(long)
+	v.Local.sBegWO.Declare(string)
+	v.Local.sEndWO.Declare(string)
+	v.local.sBegSuff.Declare(string)
+	
+	f.Intrinsic.String.Split("Job*!*Suffix*!*Part*!*Description*!*Customer*!*Due Date","*!*",v.local.sTitles)
+	f.Intrinsic.String.Split("1000*!*800*!*2000*!*3000*!*800*!*1000","*!*",v.local.iWidths)
+	
+	f.ODBC.Connection!con.opencompanyconnection
+		f.Intrinsic.UI.Browser("Select a job","con","Select Job, Suffix, Part, Description, Customer, Date_Due From V_JOB_HEADER where date_closed ='1900-01-01' ORDER BY JOB, SUFFIX;",v.Local.sTitles,v.Local.iWidths,v.Local.sRet)
+	f.ODBC.Connection!con.Close
+	
+	f.Intrinsic.Control.If(v.Local.sRet,!=,"***CANCEL***")
+		'If there is not a suffix, check the work order vals.  If there is a suffix, concat the wo and suff together, then check.
+		f.Intrinsic.String.Trim(V.Screen.f_PO!txtWOSuffStart.text,v.Local.sBegSuff)
+		f.Intrinsic.String.Split(v.Local.sRet,"*!*",v.Local.sRet)
+		
+		f.Intrinsic.Control.If(v.Screen.f_PO!txtWOStart.text,!=,"")	
+			f.Intrinsic.Control.If(v.Local.sRet(1).trim,=,"","or",v.Local.sBegSuff,=,"")
+				v.Local.sBegWO.Set(v.Screen.f_PO!txtWOStart.Text)
+				v.Local.sEndWO.Set(v.Local.sRet(0))
+			f.Intrinsic.Control.Else
+				f.Intrinsic.String.Build("{0}{1}",v.Local.sRet(0),v.Local.sRet(1),v.Local.sEndWO)
+				f.Intrinsic.String.Build("{0}{1}",v.Screen.f_PO!txtWOStart.text,v.Screen.f_PO!txtWOSuffStart.text,v.Local.sBegWO)
+			f.Intrinsic.Control.EndIf
+			
+			'Ensure the beg WO is smaller val than ending WO
+			f.Intrinsic.Control.If(v.Local.sEndWO.long,<,v.Local.sBegWO.Long)
+				f.Intrinsic.UI.Msgbox("Ending WO must be larger value than beginning WO")
+				f.Intrinsic.Control.ExitSub
+			f.Intrinsic.Control.EndIf
+		f.Intrinsic.Control.EndIf
+		
+		gui.f_PO.txtWOEnd.Text(v.Local.sRet(0))
+		gui.f_PO.txtWOSuffEnd.Text(v.Local.sRet(1))
+		
+		f.Intrinsic.Control.If(v.Screen.f_PO!txtWOStart.text,=,"")
+			gui.f_PO.txtWOStart.Text(v.Local.sRet(0))
+			gui.f_PO.txtWOSuffStart.Text(v.Local.sRet(1))
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdWOEnd_Click.End
+
+'--------CONTEXT MENUS-------
+Program.Sub.MenuClickSelectAllRows.Start
+	f.Intrinsic.Control.Try
+		V.Local.iCnt.Declare(long)
+		V.Local.iRowCnt.Declare(long)
+		v.Local.iColNum.Declare(long)
+		V.Local.sActive.Declare
+		V.Local.sfilter.Declare
+
+		Gui.f_PO.GsGCPO.getGridviewProperty("gvInvCheck","ActiveFilterString",V.Local.sActive)
+	
+		f.Intrinsic.Control.CallSub(GridViewFilterToDataViewFilter,"Filter",V.Local.sActive)
+		f.Intrinsic.Control.If(V.Local.sActive,<>,"")
+'			f.Intrinsic.String.Build("{0} and Select = True And NAME_VENDOR <> '' and PO = ''",V.Local.sActive,V.Local.sfilter)
+			f.Data.DataView.SetFilter("dtinvcheck","dvInvCheck",V.Args.Filter)
+			f.Data.DataView.SetValue("dtinvcheck","dvInvCheck",-1,"Select",true)
+		f.Intrinsic.Control.Else
+			gui.f_PO.GsGCPO.GetRowCount("gvInvCheck",v.Local.iRowCnt)
+			f.Intrinsic.Math.Sub(v.Local.iRowCnt,1,v.Local.iRowCnt)
+			gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","Select",v.Local.iColNum)
+			f.Intrinsic.Control.For(v.Local.icnt,0,v.Local.iRowCnt,1)
+				gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iColNum,v.local.iCnt,True)
+			f.Intrinsic.Control.Next(v.Local.icnt)
+		f.Intrinsic.Control.endif
+	
+	f.Intrinsic.Control.Catch
+		
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.MenuClickSelectAllRows.End
+
+Program.Sub.MenuClickSelectHighlightedRows.Start
+	f.Intrinsic.Control.Try
+		V.Local.iCnt.Declare(long)
+		v.Local.iColNum.Declare(long)
+		v.Local.sRows.Declare(string)
+		
+		gui.f_PO.GsGCPO.GetSelectedRows("gvInvCheck",v.Local.sRows)
+		f.Intrinsic.String.Split(v.Local.sRows,"*!*",v.Local.sRows)
+		gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","Select",v.Local.iColNum)
+		f.Intrinsic.Control.For(v.Local.icnt,0,v.Local.sRows.UBound,1)
+			gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iColNum,v.Local.sRows(v.local.iCnt),True)
+		f.Intrinsic.Control.Next(v.Local.icnt)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.MenuClickSelectHighlightedRows.End
+
+Program.Sub.MenuClickDeselectAllRows.Start
+	f.Intrinsic.Control.Try
+		V.Local.iCnt.Declare(long)
+		V.Local.iRowCnt.Declare(long)
+		v.Local.iColNum.Declare(long)
+		
+		gui.f_PO.GsGCPO.GetRowCount("gvInvCheck",v.Local.iRowCnt)
+		f.Intrinsic.Math.Sub(v.Local.iRowCnt,1,v.Local.iRowCnt)
+		gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","Select",v.Local.iColNum)
+		f.Intrinsic.Control.For(v.Local.icnt,0,v.Local.iRowCnt,1)
+			gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iColNum,v.local.iCnt,False)
+		f.Intrinsic.Control.Next(v.Local.icnt)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.MenuClickDeselectAllRows.End
+
+Program.Sub.MenuClickDeselectHighlightedRows.Start
+	f.Intrinsic.Control.Try
+		V.Local.iCnt.Declare(long)
+		v.Local.iColNum.Declare(long)
+		v.Local.sRows.Declare(string)
+		
+		gui.f_PO.GsGCPO.GetSelectedRows("gvInvCheck",v.Local.sRows)
+		f.Intrinsic.String.Split(v.Local.sRows,"*!*",v.Local.sRows)
+		gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","Select",v.Local.iColNum)
+		f.Intrinsic.Control.For(v.Local.icnt,0,v.Local.sRows.UBound,1)
+			gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iColNum,v.Local.sRows(v.local.iCnt),False)
+		f.Intrinsic.Control.Next(v.Local.icnt)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.MenuClickDeselectHighlightedRows.End
+
+Program.Sub.MenuClickRefresh.Start
+	f.Intrinsic.Control.CallSub(cmdRefresh_Click)
+Program.Sub.MenuClickRefresh.End
+
+Program.Sub.MenuClickCreatePOs.Start
+	f.Intrinsic.Control.Try
+		v.Local.sRet.Declare(string)
+		
+			V.Local.sActive.Declare
+			V.Local.sActive1.Declare
+			V.Local.sfilter.Declare
+			V.Local.sSelect.Declare
+		
+		'Check permission
+		f.Intrinsic.Control.If(v.Screen.f_PO!lblMode.text,!=,"Mode: Edit")
+			f.Intrinsic.UI.Msgbox("You do not have permission to create PO's","Error >> Permissions")
+			f.Intrinsic.Control.ExitSub
+		f.Intrinsic.Control.EndIf
+
+		'Get the number of rows selected
+		f.Data.DataTable.acceptchanges("dtInvCheck")
+		
+		Gui.f_PO.GsGCPO.getGridviewProperty("gvInvCheck","ActiveFilterString",V.Local.sActive)
+		f.Intrinsic.Control.CallSub(GridViewFilterToDataViewFilter,"Filter",V.Local.sActive)
+		f.Intrinsic.Control.If(V.Local.sActive,<>,"")
+			f.Intrinsic.String.Build("{0} and Select = True And NAME_VENDOR <> '' and PO = '' and qty_required > 0",V.Args.Filter,V.Local.sfilter)
+		f.Intrinsic.Control.else
+			f.Intrinsic.String.Build(" Select = True And NAME_VENDOR <> '' and PO = '' and qty_required > 0","",V.Local.sfilter)
+		f.Intrinsic.Control.endif
+		
+		f.Data.DataView.SetFilter("dtinvcheck","dvInvCheck",V.Local.sfilter)
+		f.Intrinsic.Control.If(v.DataView.dtInvCheck!dvInvCheck.RowCount,=,0)
+			f.Intrinsic.UI.Msgbox("No line selected for PO creation.  Operation Cancelled.")
+		f.Intrinsic.Control.Else
+			gui.f_PO.GsGCPO.enabled(False)
+			f.Intrinsic.Control.CallSub(CreatePOs,"ViewFilter",V.Local.sfilter)
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.Finally
+		gui.f_PO.GsGCPO.enabled(True)
+	f.Intrinsic.Control.EndTry
+Program.Sub.MenuClickCreatePOs.End
+
+Program.Sub.MenuClickExport.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	V.Local.sFileExport.Declare
+	V.Local.bExcel.Declare
+	V.Local.bFileLocked.Declare
+	V.Local.sMsg.Declare
+	V.Local.sForm.Declare
+	V.Local.sControl.Declare
+	V.Local.sExt.Declare
+	V.Local.sContent.Declare(String, "")
+	V.Local.sTitles.Declare(String, "")
+	V.Local.sTypes.Declare(String, "")
+	V.Local.sLines.Declare(String, "")
+	V.Local.sInDelimiter.Declare(String, "")
+	V.Local.sOutDelimiter.Declare(String, "")
+	V.Local.iNumber.Declare(Long, 0)
+	V.Local.fQuantity.Declare(Float, 0.0)
+	
+	Gui.f_PO.GsGCPO.Enabled(False)
+	
+	F.Intrinsic.Control.SelectCase(V.Args.MenuName)
+		F.Intrinsic.Control.Case("CTXPO")
+			V.Local.sForm.Set("f_PO")
+			V.Local.sControl.Set("GsGCPO")
+		F.Intrinsic.Control.Case("CTXNOTES")
+			V.Local.sForm.Set("frmNotes")
+			V.Local.sControl.Set("GsGCNotes")
+	F.Intrinsic.Control.EndSelect
+	
+	F.Automation.MSExcel.CheckPresence(V.Local.bExcel)
+	F.Intrinsic.Control.If(V.Local.bExcel)
+		V.Local.sExt.Set("xlsx")
+	F.Intrinsic.Control.Else
+		V.Local.sExt.Set("csv")
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("{0}\GCG_5940_CustomPurchasingDashboard.{1}",V.Caller.LocalGssTempDir,V.Local.sExt,V.Local.sFileExport)
+	F.Intrinsic.File.IsFileLocked(V.Local.sFileExport,V.Local.bFileLocked)
+	F.Intrinsic.Control.If(V.Local.bFileLocked)
+		F.Intrinsic.String.Build("File is already open. Please close and export again.{0}File: {1}",V.Ambient.NewLine,V.Local.sFileExport,V.Local.sMsg)
+		F.Intrinsic.UI.Msgbox(V.Local.sMsg,"File In Use")
+	F.Intrinsic.Control.Else
+		Gui.[V.Local.sForm].[V.Local.sControl].Export(V.Local.sFileExport,V.Local.sExt)
+		
+		'Check to see if they are clicking on the Export to CSV
+		F.Intrinsic.Control.If(V.Args.ItemName.UCase, =, "EXPORTCSV")
+		
+			'We can then read the excel into memory to create a datatable and export the datatable with only the necessary columns
+			F.Intrinsic.Control.If(V.Local.sExt.UCase, =, "XLSX")
+				F.Automation.MSExcel.ReadSpreadsheet(V.Local.sFileExport, V.Local.sContent)
+				F.Intrinsic.String.Split(V.Local.sContent, "&^&", V.Local.sContent)
+				'We can probably split the string by row and use the top row as the title row
+				F.Intrinsic.String.Split(V.Local.sContent, "$!$", V.Local.sLines)
+				V.Local.sTitles.Set(V.Local.sLines(0))
+				
+				F.Intrinsic.String.Split(V.Local.sTitles, "*!*", V.Local.sTitles)
+				
+				F.Intrinsic.Control.For(V.Local.iNumber, 1, V.Local.sTitles.UBound, 1)
+					F.Intrinsic.String.Build("{0}String*!*", V.Local.sTypes, V.Local.sTypes)
+				F.Intrinsic.Control.Next(V.Local.iNumber)
+				
+				F.Intrinsic.String.Build("{0}String", V.Local.sTypes, V.Local.sTypes)
+								
+				F.Intrinsic.String.Join(V.Local.sTitles, "*!*", V.Local.sTitles)
+'				F.Intrinsic.String.Replace(V.Local.sTitles, "Qty Req", "QtyRequired", V.Local.sTitles)
+			
+'				F.Intrinsic.Variable.PopArray(V.Local.sLines, V.Local.sLines)
+				F.Intrinsic.String.Join(V.Local.sLines, "!@!", V.Local.sContent)
+				
+				F.Data.DataTable.CreateFromString("dtForExport", V.Local.sContent, V.Local.sTitles, V.Local.sTypes, "*!*", "!@!")
+				F.Data.DataView.Create("dtForExport", "dvExport", 22)
+				
+'				F.Data.DataTable.AddColumn("dtForExport", "Price", "Float")
+				F.Data.DataTable.SetValue("dtForExport", -1, "Price", "")
+				F.Data.DataTable.SetValue("dtForExport", 0, "Price", "Price")
+				
+				F.Intrinsic.String.Build("{0}\GCG_5940_PurchasingFile.csv",V.Caller.LocalGssTempDir,V.Local.sFileExport)
+				
+				F.Intrinsic.String.Build("{0},{0}", V.Ambient.DblQuote, V.Local.sInDelimiter)
+				F.Intrinsic.String.Build("{0}{1}{0}", V.Ambient.DblQuote, V.Ambient.NewLine, V.Local.sOutDelimiter)
+				F.Data.DataView.ToString("dtForExport", "dvExport", "PART*!*DESCRIPTION*!*QTY REQ*!*PRICE",  V.Local.sInDelimiter, V.Local.sOutDelimiter, V.Local.sContent)
+				
+				F.Intrinsic.String.Build("{0}{1}{0}", V.Ambient.DblQuote, V.Local.sContent, V.Local.sContent)
+				
+				F.Intrinsic.File.String2File(V.Local.sFileExport, V.Local.sContent)
+				
+				F.Data.DataView.Close("dtForExport", "dvExport")
+				F.Data.DataTable.Close("dtForExport")
+				
+			F.Intrinsic.Control.Else
+				F.Intrinsic.File.File2String(V.Local.sFileExport, V.Local.sContent)
+				
+			F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.Task.ShellExec(0,"",V.Local.sFileExport,"","",1)
+	F.Intrinsic.Control.EndIf
+	
+	Gui.f_PO.GsGCPO.Enabled(True)
+	
+F.Intrinsic.Control.CatchWhen(5700)
+	Gui.f_PO.GsGCPO.Enabled(True)
+	F.Intrinsic.UI.Msgbox("No Data to Export","Export")
+f.Intrinsic.Control.Catch
+	Gui.f_PO.GsGCPO.Enabled(True)
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.MenuClickExport.End
+
+Program.Sub.SetContextMenus.Start
+	F.Intrinsic.Control.Try
+		V.Local.sError.Declare
+		
+		Gui.f_PO..ContextMenuCreate("ctxPO")
+		Gui.f_PO.GsGCPO.ContextMenuAttach("ctxPO")
+		Gui.f_PO..ContextMenuAddItem("ctxPO","Refresh",0,"Refresh")
+		Gui.f_PO..ContextMenuAddItem("ctxPO","Export",0,"Export")
+		Gui.f_PO..ContextMenuAddItem("ctxPO","ExportCSV",0,"Export for Purchasing")
+		Gui.f_PO..ContextMenuAddItem("ctxPO","Exp",3)
+		Gui.f_PO..ContextMenuAddItem("ctxPO","Allocate",0,"Allocate Selected Lines")
+		Gui.f_PO..ContextMenuAddItem("ctxPO","CreatePOs",0,"Create PO (Grouped)")
+		Gui.f_PO..ContextMenuAddItem("ctxPO","Exp",3)
+		gui.f_PO..ContextMenuAddItem("ctxPO","SelectAllRows",0,"Select All Rows")
+		gui.f_PO..ContextMenuAddItem("ctxPO","DeselectAllRows",0,"Deselect All Rows")
+		gui.f_PO..ContextMenuAddItem("ctxPO","SelectHighlightedRows",0,"Select Highlighted Rows")
+		gui.f_PO..ContextMenuAddItem("ctxPO","DeselectHighlightedRows",0,"Deselect Highlighted Rows")
+		Gui.f_PO..ContextMenuAddItem("ctxPO","Exp",3)
+		gui.f_PO..ContextMenuAddItem("ctxPO","ExportPickList",0,"Generate Pick List")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","Refresh","cmdRefresh_Click")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","Export","MenuClickExport")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","ExportCSV","MenuClickExport")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","Allocate","AllocateSelected")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","CreatePOs","MenuClickCreatePOs")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","SelectAllRows","MenuClickSelectAllRows")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","DeselectAllRows","MenuClickDeselectAllRows")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","SelectHighlightedRows","MenuClickSelectHighlightedRows")
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","DeselectHighlightedRows","MenuClickDeselectHighlightedRows")	
+		Gui.f_PO..ContextMenuSetItemEventHandler("ctxPO","ExportPickList","MenuClickExportPickList")
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.SetContextMenus.End
+
+'--------DATA MOVEMENT-------
+Program.Sub.ErrorMsg.Start
+v.Local.sError.Declare
+
+'Closes ODBC connection, default to connection : "con"
+f.Intrinsic.Control.If(v.ODBC!con.State, =, 1)
+	f.ODBC.Connection!con.Close
+f.Intrinsic.Control.EndIf
+
+'Generic Error message.
+'f.Intrinsic.String.Build("Project GCG_5672_CustomPurchasingDashboard.g2u {0}{0}Subroutine: {1}{0}Error: {2} with Description: {3}", v.Ambient.NewLine, v.Args.CurrentSub, v.Ambient.ErrorNumber, v.Ambient.ErrorDescription, v.Local.sError)
+'f.Intrinsic.UI.Msgbox(v.Local.sError)
+
+F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,v.Args.CurrentSub,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+F.Intrinsic.UI.Msgbox(V.Local.sError)
+Program.Sub.ErrorMsg.End
+
+Program.Sub.GetVendors.Start
+	f.Intrinsic.Control.Try
+		'Get vendor ID's and names
+		f.ODBC.Connection!con.opencompanyconnection
+			f.Data.datatable.CreateFromSQL("dtVendMstr","con","select UPPER(LTRIM(RTRIM(vendor))) AS VENDOR, UPPER(LTRIM(RTRIM(name_vendor))) AS NAME_VENDOR from v_vendor_master;",true)
+		f.ODBC.Connection!con.close
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.GetVendors.End
+
+Program.Sub.FillPOData.Start
+f.Intrinsic.Control.Try
+	v.Local.sSQL.Declare(string)
+	v.Local.sDTName.Declare(string)
+		
+	v.Local.sDTName.Set(v.Args.dt)
+	
+	'Get all PO's for jobs selected, fill PO number and line, PO qty, PO sent, PO confirmed, ship to address 1 into grid
+	f.Intrinsic.String.Build("select a.purchase_order, a.record_no, concat(concat(a.job,a.suffix),a.sequence) as JSS, convert(date_due_line,sql_date) as date_due_line, qty_received-qty_reject as qty_recv, b.address_1_pay, case when c.conf='1' then convert(1,sql_bit) else convert(0,sql_bit) end as Conf, case when c.column1='1' then convert(1,sql_bit) else convert(0,sql_bit) end as Sent, a.qty_order, d.buyer, ltrim(rtrim(d.vendor)) as Vendor, a.cost, c.column2 as PromDate from v_po_lines a inner join v_po_pay_to b on a.purchase_order=b.purchase_order left join gab_po_confchk c on a.purchase_order=c.purchase_order inner join v_po_header d on a.purchase_order=d.purchase_order where concat(a.job,a.suffix) >= '{0}{1}' and concat(a.job,a.suffix) <= '{2}{3}';",v.Screen.f_PO!txtWOStart.text,v.Screen.f_PO!txtWOSuffStart.text,v.Screen.f_PO!txtWOEnd.text,v.Screen.f_PO!txtWOSuffEnd.text,v.Local.sSQL)
+	f.ODBC.Connection!con.opencompanyconnection
+		f.Data.DataTable.CreateFromSQL("dtPOData","con",v.Local.sSQL)
+	f.ODBC.Connection!con.close
+	
+	'PO
+	f.data.Dictionary.createfromdatatable("dictPOData","dtPOData","JSS","Purchase_Order")
+	f.Data.Dictionary.SetDefaultReturn("dictPOData","")
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPOData","JSS","PO")
+	f.Data.Dictionary.Close("dictPOData")
+	
+	'PO Line Num
+	f.data.Dictionary.createfromdatatable("dictPOLine","dtPOData","JSS","record_no")
+	f.Data.Dictionary.SetDefaultReturn("dictPOLine","")
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPOLine","JSS","PO_Line")
+	f.Data.Dictionary.Close("dictPOLine")
+	
+	'PO Sent
+	f.data.Dictionary.createfromdatatable("dictPOSent","dtPOData","JSS","Sent")
+	f.Data.Dictionary.SetDefaultReturn("dictPOSent",False)
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPOSent","JSS","PO_Sent")
+	f.Data.Dictionary.Close("dictPOSent")
+	
+	'PO Confirmed
+	f.data.Dictionary.createfromdatatable("dictPOConf","dtPOData","JSS","Conf")
+	f.Data.Dictionary.SetDefaultReturn("dictPOConf",False)
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPOConf","JSS","PO_Conf")
+	f.Data.Dictionary.Close("dictPOConf")
+	
+	'PO Ship Address 1
+	f.data.Dictionary.createfromdatatable("dictPOShip1","dtPOData","JSS","address_1_pay")
+	f.Data.Dictionary.SetDefaultReturn("dictPOShip1","")
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPOShip1","JSS","PO_Addr1")
+	f.Data.Dictionary.Close("dictPOShip1")
+	
+	'PO Qty Ordered
+	f.data.Dictionary.createfromdatatable("dictPOQtyOrdered","dtPOData","JSS","qty_order")
+	f.Data.Dictionary.SetDefaultReturn("dictPOQtyOrdered",0)
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPOQtyOrdered","JSS","ORDER_QTY")
+	f.Data.Dictionary.Close("dictPOQtyOrdered")
+	
+	'Get PO received qty
+	f.data.Dictionary.createfromdatatable("dictPOQtyRecvd","dtPOData","JSS","qty_recv")
+	f.Data.Dictionary.SetDefaultReturn("dictPOQtyRecvd",0)
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPOQtyRecvd","JSS","Qty_Received")
+	f.Data.Dictionary.Close("dictPOQtyRecvd")
+	
+	'PO line due date
+	f.data.Dictionary.createfromdatatable("dictPODueDate","dtPOData","JSS","date_due_line")
+	f.Data.Dictionary.SetDefaultReturn("dictPODueDate","")
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPODueDate","JSS","PO_Due_Date")
+	f.Data.Dictionary.Close("dictPODueDate")
+	
+	'Buyer
+	f.data.Dictionary.createfromdatatable("dictBuyer","dtPOData","Purchase_Order","Buyer")
+	f.Data.Dictionary.SetDefaultReturn("dictBuyer","")
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictBuyer","PO","Buyer")
+	f.Data.Dictionary.Close("dictBuyer")
+	
+	'Cost
+	f.data.Dictionary.createfromdatatable("dictCost","dtPOData","JSS","Cost")
+	f.Data.Dictionary.SetDefaultReturn("dictCost",0.00)
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictCost","JSS","Amt_Cost")
+	f.Data.Dictionary.Close("dictCost")
+	
+	'Vendor code
+	f.data.Dictionary.createfromdatatable("dictVend","dtPOData","JSS","Vendor")
+	f.Data.Dictionary.SetDefaultReturn("dictVend","")
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictVend","JSS","Vendor_Code")
+	f.Data.Dictionary.Close("dictVend")
+	f.Intrinsic.Control.CallSub(FillInVendorInfo, "DT", v.args.DT, "source", "code")
+	
+	'PO Promise Date
+	f.data.Dictionary.createfromdatatable("dictPromDate","dtPOData","Purchase_Order","PromDate")
+	f.Data.Dictionary.SetDefaultReturn("dictPromDate","")
+	f.Data.DataTable.FillFromDictionary(v.args.DT,"dictPromDate","PO","PO_Prom_Date")
+	f.Data.Dictionary.Close("dictPromDate")
+	
+	'Fill in whether the requirement is fulfilled
+	f.Intrinsic.Control.If(v.Args.DT,=,"dtInvCheck")
+		f.Data.DataTable.AddExpressionColumn(v.args.DT,"ReqFulfilled","string","IIF([ORDER_QTY]<=[QTY_RECEIVED] AND [ORDER_QTY]>0,'Y','')")
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.FillPOData.End
+
+Program.Sub.FillInVendorInfo.Start
+	f.Intrinsic.Control.Try
+		f.Intrinsic.Control.if(v.Args.Source,=,"Name")
+			'Fill in the vendor code
+			F.Data.Dictionary.CreateFromDatatable("dictVendMstr","dtVendMstr","Name_Vendor","Vendor",2)
+			f.Data.Dictionary.SetDefaultReturn("dictVendMstr","")
+			f.Data.DataTable.FillFromDictionary(v.args.DT,"dictVendMstr","NAME_VENDOR","VENDOR_CODE")
+			f.Data.Dictionary.Close("dictVendMstr")
+		f.Intrinsic.Control.Else
+			'Fill in the vendor name
+			F.Data.Dictionary.CreateFromDatatable("dictVendMstr","dtVendMstr","Vendor","Name_Vendor",2)
+			f.Data.Dictionary.SetDefaultReturn("dictVendMstr","")
+			f.Data.DataTable.FillFromDictionary(v.args.DT,"dictVendMstr","VENDOR_CODE","NAME_VENDOR")
+			f.Data.Dictionary.Close("dictVendMstr")
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.FillInVendorInfo.End
+
+Program.Sub.LoadDT.Start
+f.Intrinsic.Control.Try
+	'Get job operations material sequences where source code of part is P2J.
+	V.Local.sSQL.Declare
+	V.Local.bRecvToInv.Declare(Boolean, False)
+	
+	gui.f_PO.frmProg.Visible(True)
+	gui.f_PO.progBarStatus.Min(0)
+	gui.f_PO.progBarStatus.Max(100)
+	gui.f_PO.progBarStatus.Value(0)
+	
+	'Edit (DD - 10/23/19) - Changed qty_required column to pull from HOURS_ESTIMATED instead of UNITS, as this is more accurate.
+	f.Intrinsic.String.Build("SELECT ltrim(rtrim(A.PART)) as PART, LTRIM(RTRIM(A.LOCATION)) AS LOCATION, LTRIM(RTRIM(A.DESCRIPTION)) AS DESCRIPTION, A.PRODUCT_LINE, A.CODE_SORT, A.TIME_MATERIAL_LEAD, A.QTY_ORDER, A.QTY_ONHAND, A.QTY_REORDER, A.QTY_RECVD_NOT_INSP AS IN_QUALITY, A.UM_INVENTORY, A.UM_PURCHASING, A.FACTOR_CONVERSION, C.JOB, C.SUFFIX, C.SEQ, concat(concat(c.job,c.suffix),c.seq) as JSS, c.HOURS_ESTIMATED as Hrs_Est, ltrim(rtrim(B.NAME_VENDOR)) AS VENDOR_CODE, '' as NAME_VENDOR, '' AS BUYER, convert(0,sql_float) as AMT_COST, C.DATE_DUE, '' AS NOTES, '' as GLAcct, '' as Mfg_Part, '' as Mfg_Name FROM V_INVENTORY_MSTR A JOIN V_INVENTORY_MST2 B ON A.PART = B.PART AND A.LOCATION = B.LOCATION INNER JOIN V_JOB_OPERATIONS C ON A.PART=C.PART WHERE B.CODE_SOURCE IN ('J') AND concat(c.job,c.suffix) >= '{0}{1}' and concat(c.job,c.suffix) <= '{2}{3}' ORDER BY part,location;",v.Screen.f_PO!txtWOStart.text,v.Screen.f_PO!txtWOSuffStart.text,v.Screen.f_PO!txtWOEnd.text,v.Screen.f_PO!txtWOSuffEnd.text,v.Local.sSQL)
+	
+	f.ODBC.Connection!con.opencompanyconnection
+		F.Data.DataTable.CreateFromSQL("dtInvCheck","con",v.local.ssql,True)
+	f.ODBC.Connection!con.close
+	
+	gui.f_PO.progBarStatus.Value(10)
+
+	'Fill in notes
+	f.ODBC.Connection!con.opencompanyconnection
+		'f.Intrinsic.String.Build("select concat(concat(ltrim(rtrim(job)),ltrim(rtrim(suffix))),ltrim(rtrim(seq))) as JSS, Notes from GCG_5672_NOTES where concat(job,suffix) >= '{0}{1}' and concat(job,suffix) <= '{2}{3}';",v.Screen.f_PO!txtWOStart.text,v.Screen.f_PO!txtWOSuffStart.text,v.Screen.f_PO!txtWOEnd.text,v.Screen.f_PO!txtWOSuffEnd.text,v.Local.sSQL)
+		'f.Data.Dictionary.CreateFromSQL("dictNotes","con",v.Local.sSQL)
+	f.ODBC.Connection!con.close
+	'f.Data.Dictionary.SetDefaultReturn("dictNotes","")
+	'f.Data.DataTable.FillFromDictionary("dtInvCheck","dictnotes","JSS","Notes")
+	'f.Data.Dictionary.Close("dictnotes")
+	
+	'Fill in mfg part and name
+	f.ODBC.Connection!con.opencompanyconnection
+		f.Data.datatable.CreateFromSQL("dtMfgXref","con","select ltrim(rtrim(part)) as part, mfg_part, mfg_name from v_inv_cross_ref;")
+	f.ODBC.Connection!con.close
+	f.Data.Dictionary.createfromdatatable("dictMfgPart","dtMfgXref","Part","Mfg_Part")
+	f.Data.Dictionary.createfromdatatable("dictMfgName","dtMfgXref","Part","Mfg_Name")
+	f.Data.Dictionary.SetDefaultReturn("dictMfgPart","")
+	f.Data.Dictionary.SetDefaultReturn("dictMfgName","")
+	f.Data.DataTable.FillFromDictionary("dtInvCheck","dictMfgPart","Part","Mfg_Part")
+	f.Data.DataTable.FillFromDictionary("dtInvCheck","dictMfgName","Part","Mfg_Name")
+	f.Data.Dictionary.Close("dictMfgPart")
+	f.Data.Dictionary.Close("dictMfgName")
+	f.Data.DataTable.Close("dtMfgXref")
+	
+	gui.f_PO.progBarStatus.Value(20)
+	
+	'Fill in GL account
+'	f.ODBC.Connection!con.opencompanyconnection
+'		f.Data.Dictionary.CreateFromSQL("dictPL","con","select product_line, Purchasing_Account from V_PRODUCT_LINE;")
+'	f.ODBC.Connection!con.close
+'	f.Data.Dictionary.SetDefaultReturn("dictPL","")
+'	f.Data.DataTable.FillFromDictionary("dtInvCheck","dictPL","PRODUCT_LINE","GLAcct")
+'	f.Data.Dictionary.Close("dictPL")
+'	gui.f_PO.progBarStatus.Value(30)
+	
+	'Per Daniel
+	'Fill in GL account
+    '    Read CO first, then decide which account to pull
+    F.Global.General.ReadOption("401897",0,"0000",v.Local.bRecvToInv)
+	F.ODBC.Connection!con.opencompanyconnection
+    F.Intrinsic.Control.If(v.Local.bRecvToInv)
+        f.Data.Dictionary.CreateFromSQL("dictPL","con","select product_line, purchasing_account from V_PRODUCT_LINE;")
+    F.Intrinsic.Control.Else
+        f.Data.Dictionary.CreateFromSQL("dictPL","con","select product_line, wip_account from V_PRODUCT_LINE2;")
+    F.Intrinsic.Control.EndIf
+    F.Data.Dictionary.SetDefaultReturn("dictPL","")
+    
+    F.Data.DataTable.FillFromDictionary("dtInvCheck","dictPL","PRODUCT_LINE","GLAcct")
+    F.Data.Dictionary.Close("dictPL")
+    
+    F.ODBC.Connection!con.Close
+    
+	'Add'l columns
+	f.Data.DataTable.AddColumn("dtInvCheck","Select","boolean",False)
+	f.Data.DataTable.AddColumn("dtInvCheck","ORDER_QTY","float")
+	f.Data.DataTable.AddColumn("dtInvCheck","PO","string")
+	f.Data.DataTable.AddColumn("dtInvCheck","PO_Line","string")
+	f.Data.DataTable.AddColumn("dtInvCheck","PO_Sent","boolean")
+	f.Data.DataTable.AddColumn("dtInvCheck","PO_Conf","boolean")
+	f.Data.DataTable.AddColumn("dtInvCheck","PO_Addr1","string")
+	f.Data.DataTable.AddColumn("dtInvCheck","Qty_Received","float")
+	f.Data.DataTable.AddColumn("dtInvCheck","PO_Due_Date","string")
+	f.Data.DataTable.AddColumn("dtInvCheck","PO_Prom_Date","string")
+	gui.f_PO.progBarStatus.Value(40)
+	
+	'Get PO data
+	f.Intrinsic.Control.CallSub(FillPOData, DT, "dtInvCheck")
+	gui.f_PO.progBarStatus.Value(50)
+	
+	'Add WIP Bin columns
+	f.Data.DataTable.AddColumn("dtinvcheck","WIPBin1","string")
+	f.Data.DataTable.AddColumn("dtinvcheck","WIPBinQty1","float")
+	f.Data.DataTable.AddColumn("dtinvcheck","WIPBin2","string")
+	f.Data.DataTable.AddColumn("dtinvcheck","WIPBinQty2","float")
+	
+	'Get WIP Bin data
+	f.Intrinsic.Control.CallSub(GetWIPBinData, "DT", "dtinvcheck")
+	
+	'Add expression columns
+	f.Data.DataTable.AddExpressionColumn("dtInvCheck","Net_Qty","float","QTY_ONHAND+ORDER_QTY-Hrs_Est")
+	f.Data.DataTable.AddExpressionColumn("dtInvCheck","Cost_Ext","float","AMT_COST*ORDER_QTY")
+	f.Data.DataTable.AddExpressionColumn("dtInvCheck","PartPO","string","PART+PO")
+	f.Data.DataTable.AddExpressionColumn("dtInvCheck","PartPOPOLine","string","PART+PO+PO_Line")
+	f.Data.DataTable.AddExpressionColumn("dtInvCheck","VendorPO","string","VENDOR_CODE+NAME_VENDOR+PO")
+	
+	'Create dataview and accumulate data for dictionaries on vendor and cost
+	'NOTE: CUSTOMER STORES VENDOR CODE IN INVENTORY MASTER NAME_VENDOR FIELD
+	f.Data.DataView.Create("dtInvCheck","dvInvCheck",22)
+	f.Data.DataView.SetFilter("dtinvcheck","dvInvCheck","PO<>''")
+	f.Data.DataView.ToDataTableDistinct("dtinvcheck","dvInvCheck","dtVendorCostMaster","PartPO*!*Vendor_Code*!*Amt_Cost",True)
+	f.ODBC.Connection!con.opencompanyconnection
+		f.Data.DataTable.CreateFromSQL("dtPriceVendNoPO","con","select ltrim(rtrim(a.PART)) as PartPO, a.amt_alt_cost as Amt_Cost, LTRIM(RTRIM(name_vendor)) AS Vendor_Code from v_inventory_mstr a inner join v_inventory_mst2 b on a.part=b.part;")
+	f.ODBC.Connection!con.close
+	f.Data.DataTable.Merge("dtPriceVendNoPO","dtVendorCostMaster",False,2)
+	f.Data.Dictionary.createFromDatatable("dictVendCode","dtVendorCostMaster","PartPO","Vendor_Code")
+	f.Data.Dictionary.createFromDatatable("dictAmtCost","dtVendorCostMaster","PartPO","Amt_Cost")
+	f.Data.Dictionary.SetDefaultReturn("dictVendCode","")
+	f.Data.Dictionary.SetDefaultReturn("dictAmtCost",0.00)
+	f.Data.DataTable.FillFromDictionary("dtInvCheck","dictVendCode","PartPO","VENDOR_CODE")
+	f.Data.DataTable.FillFromDictionary("dtInvCheck","dictAmtCost","PartPO","AMT_COST")
+	f.Data.Dictionary.Close("dictVendCode")
+	f.Data.Dictionary.Close("dictAmtCost")
+	f.Data.DataTable.Close("dtPriceVendNoPO")
+	f.Data.DataTable.Close("dtVendorCostMaster")
+	f.Data.DataView.SetFilter("dtinvcheck","dvInvCheck","")
+	
+	f.Intrinsic.Control.CallSub("FillInVendorInfo","DT","dtinvcheck","source","code")
+	
+	F.Intrinsic.Control.CallSub(FillItemInfo)
+	
+	gui.f_PO.progBarStatus.Value(70)
+	
+	f.Intrinsic.Control.CallSub(LoadGV)
+	
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.LoadDT.End
+
+Program.Sub.ReloadDT.Start
+	f.Intrinsic.Control.Try
+		V.Local.sSQL.Declare(string)
+		v.Local.sFilter.Declare(string)
+		v.Local.iCnt.Declare(long)
+		
+		gui.f_PO.GsGCPO.enabled(False)
+
+		F.Intrinsic.Control.If(V.DataTable.dtInvCheckTemp.Exists)
+			F.Data.DataTable.Close("dtInvCheckTemp")
+		F.Intrinsic.Control.EndIf
+		
+		gui.f_PO.frmProg.Visible(True)
+		gui.f_PO.progBarStatus.Value(0)
+		
+		'Edit (DD - 10/23/19) - Changed qty_required column to pull from HOURS_ESTIMATED instead of UNITS, as this is more accurate.
+		f.Intrinsic.String.Build("SELECT ltrim(rtrim(A.PART)) as PART, LTRIM(RTRIM(A.LOCATION)) AS LOCATION, LTRIM(RTRIM(A.DESCRIPTION)) AS DESCRIPTION, A.PRODUCT_LINE, A.CODE_SORT, A.TIME_MATERIAL_LEAD, A.QTY_ORDER, A.QTY_ONHAND, A.QTY_REORDER, A.QTY_RECVD_NOT_INSP AS IN_QUALITY, A.UM_INVENTORY, A.UM_PURCHASING, A.FACTOR_CONVERSION, C.JOB, C.SUFFIX, C.SEQ, concat(concat(c.job,c.suffix),c.seq) as JSS, c.HOURS_ESTIMATED as Hrs_Est, ltrim(rtrim(B.NAME_VENDOR)) AS VENDOR_CODE, '' as NAME_VENDOR, '' AS BUYER, convert(0,sql_float) as AMT_COST, C.DATE_DUE, '' AS NOTES, '' as GLAcct, '' as Mfg_Part, '' as Mfg_Name FROM V_INVENTORY_MSTR A JOIN V_INVENTORY_MST2 B ON A.PART = B.PART AND A.LOCATION = B.LOCATION INNER JOIN V_JOB_OPERATIONS C ON A.PART=C.PART WHERE B.CODE_SOURCE IN ('J') AND concat(c.job,c.suffix) >= '{0}{1}' and concat(c.job,c.suffix) <= '{2}{3}' ORDER BY part,location;",v.Screen.f_PO!txtWOStart.text,v.Screen.f_PO!txtWOSuffStart.text,v.Screen.f_PO!txtWOEnd.text,v.Screen.f_PO!txtWOSuffEnd.text,v.Local.sSQL)
+	
+		f.ODBC.Connection!con.opencompanyconnection
+			F.Data.DataTable.CreateFromSQL("dtInvCheckTemp","con",v.local.ssql,True)
+		f.ODBC.Connection!con.close
+		
+		gui.f_PO.progBarStatus.Value(10)
+		
+		'Fill in notes
+		f.ODBC.Connection!con.opencompanyconnection
+			f.Intrinsic.String.Build("select concat(concat(ltrim(rtrim(job)),ltrim(rtrim(suffix))),ltrim(rtrim(seq))) as JSS, Notes from GCG_5672_NOTES where concat(job,suffix) >= '{0}{1}' and concat(job,suffix) <= '{2}{3}';",v.Screen.f_PO!txtWOStart.text,v.Screen.f_PO!txtWOSuffStart.text,v.Screen.f_PO!txtWOEnd.text,v.Screen.f_PO!txtWOSuffEnd.text,v.Local.sSQL)
+			f.Data.Dictionary.CreateFromSQL("dictNotes","con",v.Local.sSQL)
+		f.ODBC.Connection!con.close
+		f.Data.Dictionary.SetDefaultReturn("dictNotes","")
+		f.Data.DataTable.FillFromDictionary("dtInvCheckTemp","dictnotes","JSS","Notes")
+		f.Data.Dictionary.Close("dictnotes")
+		
+		'Fill in mfg part and name
+		f.ODBC.Connection!con.opencompanyconnection
+			f.Data.datatable.CreateFromSQL("dtMfgXref","con","select ltrim(rtrim(part)) as Part, mfg_part, mfg_name from v_inv_cross_ref;")
+		f.ODBC.Connection!con.close
+		f.Data.Dictionary.createfromdatatable("dictMfgPart","dtMfgXref","Part","Mfg_Part")
+		f.Data.Dictionary.createfromdatatable("dictMfgName","dtMfgXref","Part","Mfg_Name")
+		f.Data.Dictionary.SetDefaultReturn("dictMfgPart","")
+		f.Data.Dictionary.SetDefaultReturn("dictMfgName","")
+		f.Data.DataTable.FillFromDictionary("dtInvCheckTemp","dictMfgPart","Part","Mfg_Part")
+		f.Data.DataTable.FillFromDictionary("dtInvCheckTemp","dictMfgName","Part","Mfg_Name")
+		f.Data.Dictionary.Close("dictMfgPart")
+		f.Data.Dictionary.Close("dictMfgName")
+		f.Data.DataTable.Close("dtMfgXref")
+		
+		'Fill in GL account
+		f.ODBC.Connection!con.opencompanyconnection
+			f.Data.Dictionary.CreateFromSQL("dictPL","con","select product_line, Purchasing_Account from V_PRODUCT_LINE;")
+		f.ODBC.Connection!con.close
+		f.Data.Dictionary.SetDefaultReturn("dictPL","")
+		f.Data.DataTable.FillFromDictionary("dtInvCheckTemp","dictPL","PRODUCT_LINE","GLAcct")
+		f.Data.Dictionary.Close("dictPL")
+		gui.f_PO.progBarStatus.Value(20)
+		
+		'Add'l columns
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","Select","boolean",False)
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","ORDER_QTY","float")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","PO","string")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","PO_Line","string")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","PO_Sent","boolean")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","PO_Conf","boolean")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","PO_Addr1","string")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","Qty_Received","float")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","PO_Due_Date","string")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","PO_Prom_Date","string")
+		
+		'Get PO data
+		f.Intrinsic.Control.CallSub(FillPOData, DT, "dtInvCheckTemp")
+		gui.f_PO.progBarStatus.Value(50)
+		
+		'Add WIP Bin columns
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","WIPBin1","string")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","WIPBinQty1","float")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","WIPBin2","string")
+		f.Data.DataTable.AddColumn("dtInvCheckTemp","WIPBinQty2","float")
+		
+		'Get WIP Bin data
+		f.Intrinsic.Control.CallSub(GetWIPBinData, "DT", "dtInvCheckTemp")
+		
+		'Add expression columns for dict fills
+		f.Data.DataTable.AddExpressionColumn("dtInvCheckTemp","PartPO","string","PART+PO")
+		f.Data.DataTable.AddExpressionColumn("dtInvCheckTemp","PartPOLine","string","PART+PO+PO_Line")
+		f.Data.DataTable.AddExpressionColumn("dtInvCheckTemp","VendorPO","string","VENDOR_CODE+NAME_VENDOR+PO")
+		
+		'Create dataview and accumulate data for dictionaries on vendor and cost
+		'NOTE: CUSTOMER STORES VENDOR CODE IN INVENTORY MASTER NAME_VENDOR FIELD
+		f.Data.DataView.Create("dtInvCheckTemp","dvInvCheckTemp",22)
+		f.Data.DataView.SetFilter("dtInvCheckTemp","dvInvCheckTemp","PO<>''")
+		f.Data.DataView.ToDataTableDistinct("dtInvCheckTemp","dvInvCheckTemp","dtVendorCostMaster","PartPO*!*Vendor_Code*!*Amt_Cost",True)
+		f.ODBC.Connection!con.opencompanyconnection
+			f.Data.DataTable.CreateFromSQL("dtPriceVendNoPO","con","select ltrim(rtrim(a.PART)) as PartPO, a.amt_alt_cost as Amt_Cost, LTRIM(RTRIM(name_vendor)) AS Vendor_Code from v_inventory_mstr a inner join v_inventory_mst2 b on a.part=b.part;")
+		f.ODBC.Connection!con.close
+		f.Data.DataTable.Merge("dtPriceVendNoPO","dtVendorCostMaster",False,2)
+		
+		'If a spreadsheet upload has been performed, that DT needs to be merged with this one to update the vendor and cost
+		f.Intrinsic.Control.If(v.DataTable.dtVendorCost.Exists)
+			'Loop through dtVendorCost and create a parts list to exclude from the master DT.  Create dataview from that filter string, then a new datatable.  Finally, merge the new DT with dtVendorCost.
+			f.Intrinsic.Control.For(v.Local.iCnt,0,v.DataTable.dtVendorCost.RowCount--,1)
+				f.Intrinsic.Control.If(v.Local.sFilter,!=,"")
+					f.Intrinsic.String.Build("{0},",v.Local.sFilter,v.Local.sFilter)
+				f.Intrinsic.Control.EndIf
+				f.Intrinsic.String.Build("{0}'{1}'",v.Local.sFilter,v.DataTable.dtVendorCost(v.Local.iCnt).PartPO!FieldVal,v.Local.sFilter)
+			f.Intrinsic.Control.Next(v.Local.iCnt)
+			f.Intrinsic.String.Build("PartPO not in ({0})",v.Local.sFilter,v.Local.sFilter)
+			f.Data.DataView.create("dtVendorCostMaster","dvVendorCostMaster",22,v.Local.sFilter,"")
+			f.Data.DataView.ToDataTable("dtVendorCostMaster","dvVendorCostMaster","dtVendorCostMasterTemp")
+			f.Data.DataTable.Merge("dtvendorcost","dtVendorCostMasterTemp",False,2)
+			f.Data.DataTable.DeleteRow("dtVendorCostMaster")
+			f.Data.DataTable.Merge("dtVendorCostMasterTemp","dtVendorCostMaster",False,2)
+			
+			f.Data.DataTable.acceptchanges("dtVendorCostMaster")
+		f.Intrinsic.Control.EndIf
+		
+		f.Data.Dictionary.createFromDatatable("dictVendCode","dtVendorCostMaster","PartPO","Vendor_Code")
+		f.Data.Dictionary.createFromDatatable("dictAmtCost","dtVendorCostMaster","PartPO","Amt_Cost")
+		
+		f.Data.Dictionary.SetDefaultReturn("dictVendCode","")
+		f.Data.Dictionary.SetDefaultReturn("dictAmtCost",0.00)
+		f.Data.DataTable.FillFromDictionary("dtInvCheckTemp","dictVendCode","PartPO","VENDOR_CODE")
+		f.Data.DataTable.FillFromDictionary("dtInvCheckTemp","dictAmtCost","PartPO","AMT_COST")
+		f.Data.Dictionary.Close("dictVendCode")
+		f.Data.Dictionary.Close("dictAmtCost")
+		f.Data.DataTable.Close("dtPriceVendNoPO")
+		f.Data.DataTable.Close("dtVendorCostMaster")
+'		f.Data.DataView.close("dtInvCheckTemp","dvInvCheckTemp")
+		
+		'Fill in the vendor code if no PO was cut
+		f.Intrinsic.Control.CallSub(FillInVendorInfo, "DT", "dtInvCheckTemp", "source", "Code")
+		
+		gui.f_PO.progBarStatus.Value(70)
+		
+		'Delete the expression columns in temp so the master's corresponding columns do not become static values
+		f.Data.DataTable.RemoveColumn("dtInvCheckTemp","PartPO")
+		f.Data.DataTable.RemoveColumn("dtInvCheckTemp","PartPOLine")
+		f.Data.DataTable.RemoveColumn("dtInvCheckTemp","VendorPO")
+		
+		F.Intrinsic.Control.CallSub(FillItemInfoV2)
+		
+		f.Data.DataView.close("dtInvCheckTemp","dvInvCheckTemp")
+		
+		'Reload the master datatable
+		f.Data.DataTable.DeleteRow("dtInvCheck")
+		F.Data.DataTable.Merge("dtInvCheckTemp","dtInvCheck",False,2)
+		F.Data.DataTable.ACCEPTCHANGES("dtInvCheck")
+		f.Data.DataTable.Close("dtInvCheckTemp")
+		
+		gui.f_PO.progBarStatus.Value(100)
+		gui.f_PO.frmProg.Visible(False)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.Finally
+		gui.f_PO.GsGCPO.enabled(True)
+	f.Intrinsic.Control.EndTry
+Program.Sub.ReloadDT.End
+
+Program.Sub.LoadGV.Start
+	f.Intrinsic.Control.Try
+		gui.f_PO.GsGCPO.AddGridviewFromDatatable("gvInvCheck","dtinvcheck")
+		'Gui.f_PO.GsGCPO.AddGridviewFromDataview("gvInvCheck","dtInvCheck","dvInvCheck")
+		Gui.f_PO.GsGCPO.SuspendLayout()
+		
+		'Set gridview permissions
+		f.Intrinsic.Control.CallSub(CheckPermissions)
+		
+		'Set properties
+		Gui.f_PO.GsGCPO.SetGridViewProperty("gvInvCheck","MultiSelect",True)
+		Gui.f_PO.GsGCPO.SetGridViewProperty("gvInvCheck","AllowSort",True)
+		Gui.f_PO.GsGCPO.SetGridViewProperty("gvInvCheck","AllowFilter",True)
+		Gui.f_PO.GsGCPO.SetGridViewProperty("gvInvCheck","OptionsDetailShowDetailTabs",False)
+		Gui.f_PO.GsGCPO.SetGridViewProperty("gvInvCheck","OptionsViewShowGroupPanel",True)
+		Gui.f_PO.GsGCPO.SetGridviewProperty("gvInvCheck","OptionsFilterUseNewCustomFilterDialog",True)
+		Gui.f_PO.GsGCPO.SetGridviewProperty("gvInvCheck","OptionsViewColumnAutoWidth",False)
+		
+		GUI.f_PO.GsGCPO.ADDSTYLEFORMATCONDITION("gvInvCheck","ReqFulfilled","tagReqFulfilled","Equal","Y")
+		GUI.f_PO.GsGCPO.SetStyleFormatConditionProperty("gvInvCheck","ReqFulfilled","tagReqFulfilled","backcolor","green")
+		GUI.f_PO.GsGCPO.SetStyleFormatConditionProperty("gvInvCheck","ReqFulfilled","tagReqFulfilled","forecolor","white")
+		GUI.f_PO.GsGCPO.SetStyleFormatConditionProperty("gvInvCheck","ReqFulfilled","tagReqFulfilled","fontbold","true")
+		
+		'Visible
+'		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Location","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPOPOLine","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartLoc","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","Visible",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","Visible",False)
+		
+		'Caption
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","Caption","Part")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","Caption","Loc")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","Caption","Description")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PRODUCT_LINE","Caption","PL")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","CODE_SORT","Caption","Sort Code")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","TIME_MATERIAL_LEAD","Caption","Lead Time")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","Caption","Order Qty")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","Caption","On Hand Qty")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","Caption","ReOrder Pt")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","Caption","In Quality")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_INVENTORY","Caption","UM")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_PURCHASING","Caption","UM Purch")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","FACTOR_CONVERSION","Caption","Conversion")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JOB","Caption","Job")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SUFFIX","Caption","Suffix")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SEQ","Caption","Seq")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","Caption","JSS")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","Caption","Vendor Code")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NAME_VENDOR","Caption","Vendor")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BUYER","Caption","Buyer")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","Caption","Price")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","Caption","Date Needed")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","Caption","Notes")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SELECT","Caption","Select")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","Caption","PO Qty")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","Caption","PO")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_LINE","Caption","PO Line")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_SENT","Caption","PO Sent")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_CONF","Caption","PO Conf")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Addr1","Caption","Ship Addr 1")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","Caption","Qty Recvd")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ReqFulfilled","Caption","Req Fulfilled")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","Caption","Net Qty")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","Caption","Cost Ext")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","Caption","PartPO")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","Caption","VendorPO")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","Caption","Qty On WO")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","Caption","Qty Req")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","Caption","PO Due Date")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","Caption","PO Prom Date")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","GLAcct","Caption","GL Acct")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","Caption","MFG Part")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","Caption","MFG Name")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin1","Caption","WIP Bin 1")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty1","Caption","WIP Bin 1 Qty")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin2","Caption","WIP Bin 2")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty2","Caption","WIP Bin 2 Qty")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","Caption","Total Qty Allocated")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","Caption","Qty Alloc No Loc")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PARTLOC","Caption","Part Loc")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","Caption","Qty Alloc to WO")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","Caption","Qty Available")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ALLOCBUTT","Caption"," ")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BINS","Caption","Bin")
+		'''''''90
+		
+		'Header alignment
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PRODUCT_LINE","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","CODE_SORT","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","TIME_MATERIAL_LEAD","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_INVENTORY","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_PURCHASING","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","FACTOR_CONVERSION","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JOB","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SUFFIX","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SEQ","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NAME_VENDOR","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BUYER","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SELECT","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_LINE","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_SENT","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_CONF","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Addr1","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ReqFulfilled","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","GLAcct","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin1","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty1","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin2","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty2","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PARTLOC","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ALLOCBUTT","HeaderHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BINS","HeaderHAlignment","Center")
+		
+		'Cell alignment
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","CellHAlignment","Left")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","CellHAlignment","Left")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PRODUCT_LINE","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","CODE_SORT","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","TIME_MATERIAL_LEAD","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_INVENTORY","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_PURCHASING","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","FACTOR_CONVERSION","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JOB","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SUFFIX","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SEQ","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NAME_VENDOR","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BUYER","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","CellHAlignment","Left")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SELECT","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_LINE","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_SENT","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_CONF","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Addr1","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ReqFulfilled","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","GLAcct","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin1","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty1","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin2","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty2","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PARTLOC","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","CellHAlignment","Right")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ALLOCBUTT","CellHAlignment","Center")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BINS","CellHAlignment","Left")
+		
+		gui.f_PO.progBarStatus.Value(80)
+		
+		'Header font
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PRODUCT_LINE","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","CODE_SORT","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","TIME_MATERIAL_LEAD","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_INVENTORY","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_PURCHASING","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","FACTOR_CONVERSION","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JOB","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SUFFIX","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SEQ","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NAME_VENDOR","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BUYER","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SELECT","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_LINE","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_SENT","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_CONF","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Addr1","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ReqFulfilled","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","GLAcct","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin1","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty1","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin2","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty2","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PARTLOC","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ALLOCBUTT","HeaderFontBold",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BINS","HeaderFontBold",True)
+		
+		'Column width
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","MinWidth","75")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","MinWidth","150")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PRODUCT_LINE","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","CODE_SORT","MinWidth","75")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","TIME_MATERIAL_LEAD","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_INVENTORY","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_PURCHASING","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","FACTOR_CONVERSION","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JOB","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SUFFIX","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SEQ","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","MinWidth","75")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NAME_VENDOR","MinWidth","150")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BUYER","MinWidth","100")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","MinWidth","175")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SELECT","MinWidth","25")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_LINE","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_SENT","MinWidth","25")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_CONF","MinWidth","25")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Addr1","MinWidth","150")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ReqFulfilled","MinWidth","40")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","MinWidth","75")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","MinWidth","150")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","GLAcct","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","MinWidth","100")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin1","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty1","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin2","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty2","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PARTLOC","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","MinWidth","50")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ALLOCBUTT","MinWidth","15")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BINS","MinWidth","150")
+				
+		gui.f_PO.progBarStatus.Value(90)
+		
+		'Fixed
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Select","Fixed","Left")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","Fixed","Left")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","Fixed","Left")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","Fixed","Left")
+		
+		'Hyperlinks
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","CellForeColor","Blue")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","CellForeColor","Blue")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","CellForeColor","Blue")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Line","CellForeColor","Blue")
+		
+		'Numeric formatting
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","DisplayCustomNumeric","#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","DisplayCustomNumeric","#,###,###,##0.00")
+		
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","DisplayCustomNumeric","$#,###,###,##0.00")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","DisplayCustomNumeric","$#,###,###,##0.00")
+		
+		'Date formatting
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","DisplayCustomDatetime","d")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","DisplayCustomDatetime","d")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","DisplayCustomDatetime","d")
+		
+		'Backcolor
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","CellBackColor","LightYellow")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","CellBackColor","LightYellow")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","CellBackColor","LightYellow")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Amt_Cost","CellBackColor","LightYellow")
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Name_Vendor","CellBackColor","LightYellow")
+		
+		'Readonly
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PRODUCT_LINE","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","CODE_SORT","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","TIME_MATERIAL_LEAD","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_INVENTORY","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_PURCHASING","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","FACTOR_CONVERSION","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JOB","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SUFFIX","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SEQ","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NAME_VENDOR","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BUYER","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SELECT","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_LINE","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_SENT","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_CONF","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Addr1","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ReqFulfilled","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","Readonly",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","Readonly",true)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin1","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty1","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin2","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty2","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PARTLOC","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ALLOCBUTT","Readonly",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BINS","Readonly",True)
+		
+		'AllowEdit
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PART","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","LOCATION","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DESCRIPTION","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PRODUCT_LINE","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","CODE_SORT","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","TIME_MATERIAL_LEAD","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ORDER","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ONHAND","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_REORDER","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","IN_QUALITY","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_INVENTORY","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","UM_PURCHASING","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","FACTOR_CONVERSION","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JOB","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SUFFIX","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SEQ","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","JSS","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VENDOR_CODE","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NAME_VENDOR","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BUYER","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","AMT_COST","AllowEdit",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","DATE_DUE","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","NOTES","AllowEdit",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","SELECT","AllowEdit",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ORDER_QTY","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_LINE","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_SENT","AllowEdit",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_CONF","AllowEdit",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Addr1","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_RECEIVED","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ReqFulfilled","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Net_Qty","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Cost_Ext","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Hrs_Est","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Qty_Required","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Due_Date","AllowEdit",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PO_Prom_Date","AllowEdit",True)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PartPO","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","VendorPO","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Part","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Mfg_Name","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin1","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty1","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBin2","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","WIPBinQty2","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOC","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_ALLOCPART","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","PARTLOC","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_WO_ALLOC","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","QTY_AVAILABLE","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","ALLOCBUTT","AllowEdit",False)
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","BINS","AllowEdit",False)
+		
+		'Visible Index
+		Gui.f_PO.GsGCPO.SetColumnProperty("gvInvCheck","Select","VisibleIndex",0)
+		
+		Gui.f_PO.GsGCPO.ColumnEdit("gvInvCheck", "ALLOCBUTT", "EditorButton", "Allocate")
+		
+		Gui.f_PO.GsGCPO.ResumeLayout()
+		gui.f_PO.GsGCPO.MainView("gvInvCheck")
+		gui.f_PO.progBarStatus.Value(100)
+		gui.f_PO.frmProg.Visible(False)
+		v.Global.bFormLoaded.Set(True)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.LoadGV.End
+
+Program.Sub.CopyChangesToOtherRows.Start
+	f.Intrinsic.Control.Try
+		v.Local.sVendorName.Declare(string)
+		v.Local.sDueDate.Declare(string)
+		v.Local.sPart.Declare(string)
+		v.Local.fCost.Declare(float)
+		v.Local.bSent.Declare(boolean)
+		v.Local.bConf.Declare(boolean)
+		v.Local.iSent.Declare(long)
+		v.Local.iConf.Declare(long)
+		v.Local.sPONum.Declare(string)
+		v.Local.sJob.Declare(string)
+		v.Local.sSuffix.Declare(string)
+		v.Local.sSeq.Declare(string)
+		v.Local.sNotes.Declare(string)
+		v.Local.sSQL.Declare(string)
+		v.Local.iRet.Declare(long)
+		v.Local.sVendorCode.Declare(string)
+		v.Local.sFilter.Declare(string)
+		v.Local.iSentCol.Declare(long)
+		v.Local.iConfCol.Declare(long)
+		v.Local.sColName.Declare(STRING)
+		v.Local.iCnt.Declare(long)
+		v.Local.sConf.Declare(string)
+		v.Local.sSent.Declare(string)
+		v.Local.sRet.Declare(string)
+		v.Local.iRowCnt.Declare(long)
+		v.Local.iPromDateCol.Declare(long)
+		v.Local.bDictExists.Declare(boolean)
+		v.Local.sColName.Set(v.Args.column)
+		
+		f.Data.Dictionary.Exists("dictVendCopy",v.Local.bDictExists)
+		f.Intrinsic.Control.If(v.Local.bDictExists)
+			f.Data.Dictionary.Close("dictVendCopy")
+		f.Intrinsic.Control.EndIf
+		
+		f.Intrinsic.Control.SelectCase(v.Local.sColName)
+			f.Intrinsic.Control.Case("PO_Due_Date")			
+				'All lines with same vendor will have the same due date.  Using vendor since they need to fill out the due date before the PO can be created.
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","NAME_VENDOR",V.Args.rowIndex,v.Local.sVendorName)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","VENDOR_CODE",V.Args.rowIndex,v.Local.sVendorCode)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO_Due_Date",V.Args.rowIndex,v.Local.sDueDate)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",V.Args.rowIndex,v.Local.sPONum)
+				f.Intrinsic.String.Build("{0}{1}{2}",v.Local.sVendorCode,v.Local.sVendorName,v.Local.sPONum,v.Local.sFilter)
+				f.Intrinsic.Control.If(v.Local.sVendorCode,!=,"")
+					f.Intrinsic.Control.If(v.Local.sPONum,!=,"")
+						f.Intrinsic.UI.Msgbox("Due Date will not be copied to any other lines.  Please open the PO and edit the line to change the due date.")
+						f.Intrinsic.Control.ExitSub
+					f.Intrinsic.Control.EndIf
+					f.data.Dictionary.createfromdatatable("dictVendPO","dtInvCheck","VendorPO","PO_Due_Date")
+					f.Data.Dictionary.UpdateItem("dictvendpo",v.Local.sFilter,v.Local.sDueDate)
+					f.Data.DataTable.FillFromDictionary("dtInvCheck","dictVendPO","VendorPO","PO_Due_Date")
+					f.Data.Dictionary.Close("dictvendpo")
+				f.Intrinsic.Control.Else
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+			f.Intrinsic.Control.Case("PO_Prom_Date")
+				'All PO lines will have same PO Promise Date values.  Using PO since these columns pertain exclusively to the PO
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",V.Args.rowindex,v.Local.sPONum)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO_Prom_Date",V.Args.rowIndex,v.Local.sDueDate)
+				gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","PO_Prom_Date",v.Local.iPromDateCol)
+				
+				f.Intrinsic.Control.If(v.Local.sPONum,!=,"")
+					f.Data.Dictionary.createfromdatatable("dictPOProm","dtInvCheck","PO","PO_Prom_Date")
+					f.Data.Dictionary.UpdateItem("dictPOProm",v.Local.sPONum,v.Local.sDueDate)
+					f.Data.DataTable.FillFromDictionary("dtInvCheck","dictPOProm","PO","PO_Prom_Date")
+					f.Data.Dictionary.Close("dictPOProm")
+
+					f.Intrinsic.String.Build("select count(*) from gab_po_confchk where purchase_order='{0}';",v.Local.sPONum,v.Local.sSQL)
+					f.ODBC.Connection!con.opencompanyconnection
+						f.ODBC.Connection!con.executeandreturn(v.Local.sSQL,v.Local.iret)
+						f.Intrinsic.Control.If(v.Local.iRet,=,0)
+							f.Intrinsic.String.Build("insert into gab_po_confchk (purchase_order,conf,column1,gs_user,date_conf,column2) values ('{0}','0','0','{1}','{2}','{3}');",v.Local.sPONum,v.Caller.User,v.Ambient.Date.PervasiveDate,v.Local.sDueDate,v.Local.sSQL)
+							f.ODBC.Connection!con.execute(v.Local.sSQL)
+						f.Intrinsic.Control.Else
+							f.Intrinsic.String.Build("update gab_po_confchk set column2='{0}' where purchase_order='{1}';",v.Local.sDueDate,v.Local.sPONum,v.Local.sSQL)
+							f.ODBC.Connection!con.execute(v.Local.sSQL)
+						f.Intrinsic.Control.EndIf
+					f.ODBC.Connection!con.close	
+				f.Intrinsic.Control.Else
+					gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iPromDateCol,v.Args.rowIndex,"")
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+			f.Intrinsic.Control.Case("AMT_COST")			
+				'All lines with same part will have same cost
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PART",V.Args.rowIndex,v.Local.sPart)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","AMT_COST",V.Args.rowIndex,v.Local.fCost)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",V.Args.rowIndex,v.Local.sPONum)
+				f.Intrinsic.String.Build("{0}{1}",v.Local.sPart,v.Local.sPONum,v.Local.sFilter)
+				f.Intrinsic.Control.If(v.Local.sPONum,=,"")
+					f.data.Dictionary.createfromdatatable("dictPrice","dtInvCheck","PartPOPOLine","Amt_Cost")
+					f.Data.Dictionary.UpdateItem("dictPrice",v.Local.sFilter,v.Local.fCost)
+					f.Data.DataTable.FillFromDictionary("dtInvCheck","dictPrice","PartPOPOLine","Amt_Cost")
+					f.Data.Dictionary.Close("dictPrice")
+				f.Intrinsic.Control.Else
+					f.Intrinsic.UI.Msgbox("Price will not be copied to any other lines.  Please open the PO and edit the line to change the price.")
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+			f.Intrinsic.Control.Caseany("PO_Sent")
+				'All PO lines will have same Sent and Conf values.  Using PO since these columns pertain exclusively to the PO
+				
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",V.Args.rowindex,v.Local.sPONum)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO_SENT",V.Args.rowIndex,v.Local.bSent)
+				f.Intrinsic.Control.if(v.Local.bSent,=,True)
+					v.Local.iSent.Set(1)
+				f.Intrinsic.Control.Else
+					v.Local.iSent.Set(0)
+				f.Intrinsic.Control.Endif
+				gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","PO_SENT",v.Local.iSentCol)
+				
+				f.Intrinsic.Control.If(v.Local.sPONum,!=,"")
+					f.Data.Dictionary.createfromdatatable("dictPOSent","dtInvCheck","PO","PO_Sent")
+					f.Data.Dictionary.UpdateItem("dictPOSent",v.Local.sPONum,v.Local.iSent)
+					f.Data.DataTable.FillFromDictionary("dtInvCheck","dictPOSent","PO","PO_Sent")
+					f.Data.Dictionary.Close("dictPOSent")
+
+					f.Intrinsic.String.Build("select count(*) from gab_po_confchk where purchase_order='{0}';",v.Local.sPONum,v.Local.sSQL)
+					f.ODBC.Connection!con.opencompanyconnection
+						f.ODBC.Connection!con.executeandreturn(v.Local.sSQL,v.Local.iret)
+						f.Intrinsic.Control.If(v.Local.iRet,=,0)
+							f.Intrinsic.String.Build("insert into gab_po_confchk (purchase_order,conf,column1,gs_user,date_conf) values ('{0}','0','{1}','{2}','{3}');",v.Local.sPONum,v.Local.iSent.String,v.Caller.User,v.Ambient.Date.PervasiveDate,v.Local.sSQL)
+							f.ODBC.Connection!con.execute(v.Local.sSQL)
+						f.Intrinsic.Control.Else
+							f.Intrinsic.String.Build("update gab_po_confchk set column1='{0}' where purchase_order='{1}';",v.Local.iSent.String,v.Local.sPONum,v.Local.sSQL)
+							f.ODBC.Connection!con.execute(v.Local.sSQL)
+						f.Intrinsic.Control.EndIf
+					f.ODBC.Connection!con.close	
+				f.Intrinsic.Control.Else
+					gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iSentCol,v.Args.rowIndex,False)
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.Case("PO_Conf")
+				'All PO lines will have same Sent and Conf values.  Using PO since these columns pertain exclusively to the PO
+				
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",V.Args.rowindex,v.Local.sPONum)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO_CONF",V.Args.rowIndex,v.Local.bConf)
+				f.Intrinsic.Control.if(v.Local.bConf,=,True)
+					v.Local.iConf.Set(1)
+				f.Intrinsic.Control.Else
+					v.Local.iConf.Set(0)
+				f.Intrinsic.Control.Endif
+				gui.f_PO.GsGCPO.GetColumnIndexByName("gvInvCheck","PO_CONF",v.Local.iConfCol)
+				
+				f.Intrinsic.Control.If(v.Local.sPONum,!=,"")
+					f.Data.Dictionary.createfromdatatable("dictPOConf","dtInvCheck","PO","PO_Conf")
+					f.Data.Dictionary.UpdateItem("dictPOConf",v.Local.sPONum,v.Local.iConf)
+					f.Data.DataTable.FillFromDictionary("dtInvCheck","dictPOConf","PO","PO_Conf")
+					f.Data.Dictionary.Close("dictPOConf")
+
+					f.Intrinsic.String.Build("select count(*) from gab_po_confchk where purchase_order='{0}';",v.Local.sPONum,v.Local.sSQL)
+					f.ODBC.Connection!con.opencompanyconnection
+						f.ODBC.Connection!con.executeandreturn(v.Local.sSQL,v.Local.iret)
+						f.Intrinsic.Control.If(v.Local.iRet,=,0)
+							f.Intrinsic.String.Build("insert into gab_po_confchk (purchase_order,conf,column1,gs_user,date_conf) values ('{0}','{1}','0','{2}','{3}');",v.Local.sPONum,v.Local.iConf.String,v.Caller.User,v.Ambient.Date.PervasiveDate,v.Local.sSQL)
+							f.ODBC.Connection!con.execute(v.Local.sSQL)
+						f.Intrinsic.Control.Else
+							f.Intrinsic.String.Build("update gab_po_confchk set conf='{0}' where purchase_order='{1}';",v.Local.iConf.String,v.Local.sPONum,v.Local.sSQL)
+							f.ODBC.Connection!con.execute(v.Local.sSQL)
+						f.Intrinsic.Control.EndIf
+					f.ODBC.Connection!con.close	
+					'f.Data.DataTable.Close("dtInvCheckPO")
+				f.Intrinsic.Control.Else
+					gui.f_PO.GsGCPO.SetCellValue("gvInvCheck",v.Local.iConfCol,v.Args.rowIndex,False)
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.Case("NOTES")
+
+				'If notes changed, save to custom table.
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","JOB",V.Args.rowIndex,v.Local.sJob)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","SUFFIX",V.Args.rowIndex,v.Local.sSuffix)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","SEQ",V.Args.rowIndex,v.Local.sSeq)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","NOTES",V.Args.rowIndex,v.Local.sNotes)
+				F.Intrinsic.String.Build("select count(*) from gcg_5672_notes where concat(job,concat(suffix,seq))='{0}{1}{2}';",v.Local.sJob,v.Local.sSuffix,v.Local.sSeq,v.Local.sSQL)
+				f.ODBC.Connection!con.opencompanyconnection
+					f.odbc.Connection!con.executeandreturn(v.Local.sSQL,v.Local.iRet)
+				f.ODBC.Connection!con.close
+				
+				f.Intrinsic.Control.If(v.local.iRet,=,0)
+					f.Intrinsic.String.Build("insert into gcg_5672_notes (notes, job, suffix, seq) values ('{0}','{1}','{2}','{3}');",v.Local.sNotes,v.Local.sJob,v.Local.sSuffix,v.Local.sSeq,v.Local.sSQL)
+				f.Intrinsic.Control.else
+					f.Intrinsic.String.Build("update gcg_5672_notes set notes='{0}' where job='{1}' and suffix='{2}' and seq='{3}';",v.Local.sNotes,v.Local.sJob,v.Local.sSuffix,v.Local.sSeq,v.Local.sSQL)
+				f.Intrinsic.Control.EndIf
+				
+				f.ODBC.Connection!con.opencompanyconnection
+					f.odbc.Connection!con.execute(v.Local.sSQL)
+				f.ODBC.Connection!con.close
+			F.Intrinsic.Control.Case("NAME_VENDOR")
+				'F.Intrinsic.Control.BlockEvents
+				'All instances of a part will have the same vendor
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PART",V.Args.rowIndex,v.Local.sPart)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","NAME_VENDOR",V.Args.rowIndex,v.Local.sVendorName)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",V.Args.rowIndex,v.Local.sPONum)
+				f.Intrinsic.Control.If(v.Local.sPONum,=,"")
+					f.Intrinsic.String.Build("{0}{1}",v.Local.sPart,v.Local.sPONum,v.Local.sFilter)
+					f.Data.Dataview.ToDataTableDistinct("dtInvCheck","dvInvCheck","dtVendCopy","PartPO*!*NAME_VENDOR")
+					f.Data.Dictionary.createfromdatatable("dictVendCopy","dtVendCopy","PartPO","NAME_VENDOR")
+					F.Data.Dictionary.UpdateItem("dictVendCopy",v.Local.sFilter,v.Local.sVendorName)
+					f.Data.DataTable.FillFromDictionary("dtInvCheck","dictVendCopy","PartPO","NAME_VENDOR")
+					F.Data.Dictionary.Close("dictVendCopy")
+					F.Data.DataTable.Close("dtVendCopy")
+					F.Data.DataTable.ACCEPTCHANGES("dtInvCheck")
+					f.Intrinsic.Control.CallSub(FillInVendorInfo, "DT", "dtInvCheck", "source", "Name")
+				f.Intrinsic.Control.Else
+					f.Intrinsic.UI.Msgbox("The vendor cannot be modified on PO lines.  Please open the PO to modify the vendor.")
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+			f.Intrinsic.Control.Case("Vendor_Code")
+				'F.Intrinsic.Control.BlockEvents
+				'All instances of a part will have the same vendor
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PART",V.Args.rowIndex,v.Local.sPart)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","Vendor_Code",V.Args.rowIndex,v.Local.sVendorCode)
+				gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PO",V.Args.rowIndex,v.Local.sPONum)
+				f.Intrinsic.Control.If(v.Local.sPONum,=,"")
+					f.Intrinsic.String.Build("{0}{1}",v.Local.sPart,v.Local.sPONum,v.Local.sFilter)
+					f.Data.Dictionary.createfromdatatable("dictVendCopy","dtInvCheck","PartPO","Vendor_Code")
+					F.Data.Dictionary.UpdateItem("dictVendCopy",v.Local.sFilter,v.Local.sVendorCode)
+					f.Data.DataTable.FillFromDictionary("dtInvCheck","dictVendCopy","PartPO","Vendor_Code")
+					F.Data.Dictionary.Close("dictVendCopy")
+					f.Intrinsic.Control.CallSub(FillInVendorInfo, "DT", "dtInvCheck", "source", "Code")
+				f.Intrinsic.Control.Else
+					f.Intrinsic.UI.Msgbox("The vendor cannot be modified on PO lines.  Please open the PO to modify the vendor.")
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+		f.Intrinsic.Control.EndSelect
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.CopyChangesToOtherRows.End
+
+Program.Sub.GetCompanyShipTo.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	f.ODBC.Connection!con.opencompanyconnection
+		F.Data.DataTable.CreateFromSQL("dtCompany","con","Select NAME_COMPANY, ADDRESS1, ADDRESS2, CITY, STATE, CODE_ZIP, COUNTRY, COUNTY, ATTENTION From V_COMPANY;",True)
+	f.ODBC.Connection!con.close
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.GetCompanyShipTo.End
+
+Program.Sub.CreatePOs.Start
+f.Intrinsic.Control.Try
+	'Group PO's by vendor
+	'After PO's are created, open each one to maintain 
+	V.Local.iCnt.Declare(Long)
+	V.Local.iCnt2.Declare(Long)
+	V.Local.dDueDate.Declare(Date)
+	V.Local.fExtension.Declare(Float)
+	V.Local.sSelect.Declare(String)
+	V.Local.iPO.Declare(Long)
+	V.Local.sPO.Declare(String)
+	V.Local.iPOLine.Declare(Long)
+	V.Local.sPOLine.Declare(String)
+	V.Local.sFilter.Declare(String)
+	V.Local.sStatus.Declare(String)
+	V.Local.sReturnFileName.Declare(String)
+	V.Local.sSQL.Declare(String)
+	V.Local.sFileName.Declare(String)
+	V.Local.sPURORDER.Declare(String)
+	V.Local.sName.Declare(String)
+	V.Local.sNameSplit.Declare(String)
+	V.Local.sBuyerCode.Declare(String)
+	V.Local.sGV.Declare(String)
+	V.Local.sDT.Declare(String)
+	V.Local.sParams.Declare(string)
+	V.Local.sNotes.Declare(String, "")
+	
+	V.Local.sGV.Set("gvInvCheck")
+	V.Local.sDT.Set("dtInvCheck")
+	
+	f.ODBC.Connection!con.opencompanyconnection
+	
+	'Get Buyer Code
+	F.Global.Security.GetFullName(V.Caller.User,V.Local.sName)
+	F.Intrinsic.String.Split(V.Local.sName," ",V.Local.sNameSplit)
+	F.Intrinsic.Control.If(V.Local.sNameSplit.UBound,=,2)
+		F.Intrinsic.String.Build("{0} {1}",V.Local.sNameSplit(0),V.Local.sNameSplit(2),V.Local.sName)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("Select Buyer_Code From V_Buyers Where Upper(Buyer) = Upper('{0}');",V.Local.sName,V.Local.sSQL)
+	F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL,V.Local.sBuyerCode)
+	
+	'Create Grouped POs	
+	F.Data.DataView.Create(V.Local.sDT,"dvPOSelected",22,v.Args.ViewFilter,"")
+	F.Data.DataView.ToDataTableDistinct(V.Local.sDT,"dvInvCheck","dtPOVends","VENDOR_CODE*!*NAME_VENDOR",True)
+	
+	F.Data.DataView.Close(V.Local.sDT,"dvPOSelected")
+	F.Intrinsic.Control.For(V.Local.iCnt,0,V.DataTable.dtPOVends.RowCount--,1)
+'		F.Intrinsic.String.Build("Select = True And Vendor_CODE = '{0}' and PO = ''",V.DataTable.dtPOVends(V.Local.iCnt).Vendor_CODE!FieldValTrim,V.Local.sFilter)
+		F.Intrinsic.String.Build(" {0} and Vendor_CODE = '{1}'",v.Args.ViewFilter,V.DataTable.dtPOVends(V.Local.iCnt).Vendor_CODE!FieldValTrim,V.Local.sFilter)
+		F.Data.DataTable.Select(V.Local.sDT,V.Local.sFilter,V.Local.sSelect)
+		F.Intrinsic.Control.If(V.Local.sSelect,<>,"***NORETURN***")
+			F.Intrinsic.String.Split(V.Local.sSelect,"*!*",V.Local.sSelect)
+			F.Intrinsic.Control.For(V.Local.iCnt2,0,V.Local.sSelect.UBound,1)
+				'Set PO Number
+				F.ODBC.Connection!con.ExecuteAndReturn("Select Last_PO_Num From Last_PO Where Ass_Sys = 'PUR' And Ass_Sub_Sys = 'CTL';",V.Local.iPO)
+				F.Intrinsic.String.LPad(V.Local.iPO.++,"0",7,V.Local.sPO)
+				'Set PO Line
+				F.Intrinsic.Math.Add(V.Local.iCnt2,1,V.Local.iPOLine)
+				F.Intrinsic.String.LPad(V.Local.iPOLine,"0",3,V.Local.sPOLine)
+				'Create Upload File: PURORDER.txt
+				F.Intrinsic.Control.CallSub("GenerateGroupedPOs","PO",V.Local.sPO,"POLine",V.Local.sPOLine,"Vendor",V.DataTable.dtPOVends(V.Local.iCnt).Vendor_CODE!FieldValTrim,"DueDate",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).PO_DUE_DATE!FieldValTrim,"Part",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Part!FieldValTrim,"Loc",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Location!FieldValTrim,"Description",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Description!FieldValTrim,"UM",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).UM_Inventory!FieldValTrim,"PL",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).PRODUCT_LINE!FieldValTrim,"Cost",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).AMT_Cost!FieldValTrim,"Qty",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).qty_required!FieldValTrim,"BuyerCode",V.Local.sBuyerCode,"GLAcct",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).GLAcct!FieldValTrim,"ReqNo","","ReqLine","","Job",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Job!FieldVal,"Suffix",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Suffix!FieldVal,"Seq",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Seq!FieldVal,"MFG_Part",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).MFG_Part!FieldVal,"MFG_Name",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).MFG_Name!FieldVal)
+				'Set data to text file variable
+				F.Intrinsic.Control.If(V.Local.sPURORDER,=,"")
+					V.Local.sPURORDER.Set(v.Args.POTEXT)
+				F.Intrinsic.Control.Else
+					F.Intrinsic.String.Build("{0}{1}",V.Local.sPURORDER,V.Args.POTEXT,V.Local.sPURORDER)
+				F.Intrinsic.Control.EndIf
+				'Update On Order PO in Inventory_Mstr (I1MST)
+				
+				F.Intrinsic.String.Build("Update Inventory_Mstr Set Qty_OnOrder_PO = Qty_OnOrder_PO + {0} Where Part = '{1}' And Location = '{2}';",V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).ORDER_QTY!FieldValTrim,V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Part!FieldValTrim,V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).Location!FieldValTrim,V.Local.sSQL)
+				
+				F.ODBC.Connection!con.Execute(V.Local.sSQL)
+				
+				'Save the notes on the GAB_4163_PONOTES table. Request added by FEQ on 4/06/2020, requested by C3
+				V.Local.sNotes.Set(V.DataTable.dtInvCheck(V.Local.sSelect(V.Local.iCnt2)).NOTES!FieldValTrim)
+				F.Intrinsic.Control.If(V.Local.sNotes.Trim, <>, "")
+					F.Intrinsic.String.Build("Insert into GAB_4163_PO_NOTES (PO, POLINE, NOTES) values ('{0}','{1}','{2}')", V.Local.sPO, V.Local.sPOLine, V.Local.sNotes, V.Local.sSQL)
+					F.ODBC.Connection!con.Execute(V.Local.sSQL)
+				F.Intrinsic.Control.EndIf
+				
+			F.Intrinsic.Control.Next(V.Local.iCnt2)
+			'Write PO info to PURORDER.txt
+			F.Intrinsic.String.Build("{0}\PURORDER.txt",V.Caller.FilesDir,V.Local.sFileName)
+			F.Intrinsic.File.String2File(V.Local.sFileName,V.Local.sPURORDER)
+			'Upload PO File
+			F.Global.Callwrapper.New("POUpload","Purchasing.PurchaseOrderUpload")
+			F.Global.Callwrapper.SetProperty("POUpload","Mode",0)
+			F.Global.Callwrapper.SetProperty("POUpload","FileName","PURORDER")
+			F.Global.CallWrapper.Run("POUpload")
+			F.Global.CallWrapper.GetProperty("POUpload","Status",V.Local.sStatus)
+			F.Global.CallWrapper.GetProperty("POUpload","ReturnFileName",V.Local.sReturnFileName)
+			'Update Last PO Number
+			F.Intrinsic.String.Build("Update Last_PO Set Last_PO_Num = '{0}' Where Ass_Sys = 'PUR' And Ass_Sub_Sys = 'CTL';",V.Local.sPO,V.Local.sSQL)
+			F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+			'Delete PURORDER.txt
+			F.Intrinsic.File.DeleteFile(V.Local.sFileName)
+			V.Local.sPURORDER.Set("")
+			
+			'Open the PO for maintenance before adding another
+			F.Intrinsic.String.ConcatCallWrapperArgs("O",V.Local.sPO,"",V.Local.sParams)
+			F.Global.General.CallWrapperSync(175200,V.Local.sParams)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.iCnt)
+	F.Data.DataTable.Close("dtPOVends")
+	f.ODBC.Connection!con.close
+	
+	'Refresh datatable
+	f.Intrinsic.Control.CallSub(cmdRefresh_Click)
+
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.CreatePOs.End
+
+Program.Sub.GenerateGroupedPOs.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sSQL.Declare
+	V.Local.sVenName.Declare
+	V.Local.sVenAdd1.Declare
+	V.Local.sVenAdd2.Declare
+	V.Local.sVenState.Declare
+	V.Local.sVenZip.Declare
+	V.Local.sVenCity.Declare
+	V.Local.sVenAttn.Declare
+	V.Local.sVenGL.Declare
+	V.Local.sGL.Declare
+	V.Local.sCurrency.Declare
+	V.local.sPODate.Declare
+	V.local.sPODueDate.Declare
+	V.Local.sRet.Declare
+	V.Local.sTemp.Declare
+	V.Local.sTempFull.Declare
+
+	F.Intrinsic.Control.If(V.Args.POLine,=,001)
+	'-------------------------------------------------------------------# Header #-------------------------------------------------------------------
+		F.Intrinsic.String.Build("Select A.Vendor,A.Name_Vendor,A.Address1,A.Address2,A.City,A.Rec,A.State,A.Code_Zip,A.Country,A.Attention,A.Normal_GL_Account,B.Default_Currency As CurrencyCode From V_Vendor_Master A Left Join V_Vendor_Intl As B on A.Vendor = B.Vendor Where A.Vendor = '{0}';",V.Args.Vendor,V.Local.sSQL)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstVend",V.Local.sSQL)
+		F.Intrinsic.Control.If(V.ODBC.Con!rstVend.EOF,=,False)
+			V.Local.sVenName.set(V.ODBC.Con!rstVend.FieldVal!Name_Vendor)
+			V.Local.sVenAdd1.set(V.ODBC.Con!rstVend.FieldVal!Address1)
+			V.Local.sVenAdd2.set(V.ODBC.Con!rstVend.FieldVal!Address2)
+			V.Local.sVenState.set(V.ODBC.Con!rstVend.FieldVal!State)
+			V.Local.sVenZip.set(V.ODBC.Con!rstVend.FieldVal!Code_Zip)
+			V.Local.sVenCity.set(V.ODBC.Con!rstVend.FieldVal!City)
+			V.Local.sVenAttn.set(V.ODBC.Con!rstVend.FieldVal!Attention)
+			V.Local.sVenGL.set(V.ODBC.Con!rstVend.FieldVal!Normal_GL_Account)
+			V.Local.sCurrency.set(V.ODBC.Con!rstVend.FieldVal!CurrencyCode)
+		F.Intrinsic.Control.EndIf
+		F.ODBC.Con!rstVend.Close
+		'PO Date
+		F.Intrinsic.String.Format(V.Ambient.Date,"MMDDYY",V.local.sPODate)
+		'RequiredDate,DueDate
+		F.Intrinsic.String.Format(V.Args.DueDate,"MMDDYY",V.local.sPODueDate)
+	'A Record
+		'PO,Rec Type
+		F.Intrinsic.String.Concat(V.Args.PO,"  A",V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",12,V.Local.sTemp)
+		'Buyer
+		V.Local.sRet.Set("")
+		F.Intrinsic.String.RPad(V.Args.BuyerCode," ",7,V.Local.sRet)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sRet,V.Local.sTemp)
+		'Ship Via
+		V.Local.sRet.Set("")
+		F.Intrinsic.String.RPad(V.Local.sRet," ",15,V.Local.sRet)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sRet,V.Local.sTemp)
+		'FOB
+		V.Local.sRet.Set("")
+		F.Intrinsic.String.RPad(V.Local.sRet," ",15,V.Local.sRet)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sRet,V.Local.sTemp)
+		'Terms
+		V.Local.sRet.Set("")
+		F.Intrinsic.String.RPad(V.Local.sRet," ",12,V.Local.sRet)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sRet,V.Local.sTemp)
+		'PO Date
+		F.Intrinsic.String.Rpad(V.Local.sTemp," ",195,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.local.sPODate,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",207,V.Local.sTemp)
+		'Date Due
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.local.sPODueDate,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",229,V.Local.sTemp)
+		'GL Account
+		V.Local.sGL.Set(V.Args.GLAcct)
+		F.Intrinsic.Control.If(V.Local.sGL.Trim,=,"")
+			V.Local.sGL.Set(V.Local.sVenGL)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sGL,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",267,V.Local.sTemp)
+		'Vendor #
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.Vendor,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",298,V.Local.sTemp)
+		'User 1
+		F.Intrinsic.String.Concat(V.Local.sTemp,"",V.Local.sTemp)
+		'New Line
+		F.Intrinsic.String.Concat(V.Local.sTempFull,V.Local.sTemp,V.Ambient.NewLine,V.Local.sTempFull)
+	'B Record
+		'PO,Rec Type,Name Vendor
+		F.Intrinsic.String.Concat(V.Args.PO,"  B",V.Local.sVenName,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",40,V.Local.sTemp)
+		'Vendor Address
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sVenAdd1,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",70,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sVenAdd2,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",190,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sVenCity,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",210,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sVenState,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",212,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sVenZip,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",237,V.Local.sTemp)
+		'Attention
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sVenAttn,V.Local.sTemp)
+		'New Line
+		F.Intrinsic.String.Concat(V.Local.sTempFull,V.Local.sTemp,V.Ambient.NewLine,V.Local.sTempFull)
+	'C Record
+		F.Intrinsic.String.Concat(V.Args.PO,"  C",V.DataTable.dtCompany(0).NAME_COMPANY!FieldValTrim,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",40,V.Local.sTemp)
+		'Vendor Address
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.DataTable.dtCompany(0).ADDRESS1!FieldValTrim,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",70,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.DataTable.dtCompany(0).ADDRESS2!FieldValTrim,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",190,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.DataTable.dtCompany(0).CITY!FieldValTrim,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",210,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.DataTable.dtCompany(0).STATE!FieldValTrim,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",212,V.Local.sTemp)
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.DataTable.dtCompany(0).CODE_ZIP!FieldValTrim,V.Local.sTemp)
+		F.Intrinsic.String.RPad(V.Local.sTemp," ",237,V.Local.sTemp)
+		'Attention
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.DataTable.dtCompany(0).ATTENTION!FieldValTrim,V.Local.sTemp)
+		'New Line
+		F.Intrinsic.String.Concat(V.Local.sTempFull,V.Local.sTemp,V.Ambient.NewLine,V.Local.sTempFull)
+	F.Intrinsic.Control.EndIf
+	
+	'-------------------------------------------------------------------# Line #-------------------------------------------------------------------
+	'PO, Line,Part
+	F.Intrinsic.String.Concat(V.Args.PO,V.Args.POLine,V.Args.Part,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",30,V.Local.sTemp)
+	'Loc
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.Loc,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",32,V.Local.sTemp)
+	'Description
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.Description.Trim,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",62,V.Local.sTemp)
+	'UM
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.UM.Trim,V.Local.sTemp)
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",65,V.Local.sTemp)
+	'Work Order Number
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.JOB,V.Local.sTemp)
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",71,V.Local.sTemp)
+	'Work Order Sequence
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.SEQ,V.Local.sTemp)
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",77,V.Local.sTemp)
+	'Requisition Number
+	F.Intrinsic.Control.If(V.Args.ReqNo.Trim,=,"")
+		F.Intrinsic.String.Concat(V.Local.sTemp,"      ",V.Local.sTemp)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.ReqNo,V.Local.sTemp)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",87,V.Local.sTemp)
+	'Taxable
+	F.Intrinsic.String.Concat(V.Local.sTemp,"",V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",100,V.Local.sTemp)
+	'GL Account
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.GLACCT,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",121,V.Local.sTemp)
+	'PL
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.PL.Trim,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",124,V.Local.sTemp)
+	'Required Date Line DueDate
+	F.Intrinsic.String.Format(V.Args.DueDate,"MMDDYY",V.local.sPODueDate)
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.local.sPODueDate,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",136,V.Local.sTemp)
+	'Cost
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.Cost,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",168,V.Local.sTemp)
+	'Qty
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.Qty,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",266,V.Local.sTemp)
+	'Work Order Sequence
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.SUFFIX,V.Local.sTemp)
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",269,V.Local.sTemp)
+	'Manafacturer's Part
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.MFG_Part,V.Local.sTemp)
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",292,V.Local.sTemp)
+	'Manufacturer Name
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.Mfg_Name,V.Local.sTemp)
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",339,V.Local.sTemp)
+	'Currency
+	F.Intrinsic.String.Concat(V.Local.sTemp,V.Local.sCurrency,V.Local.sTemp)
+	F.Intrinsic.String.RPad(V.Local.sTemp," ",548,V.Local.sTemp)
+	'Requisition Line
+	F.Intrinsic.Control.If(V.Args.ReqLine.Trim,=,"")
+		F.Intrinsic.String.Concat(V.Local.sTemp,"   ",V.Local.sTemp)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Concat(V.Local.sTemp,V.Args.ReqLine,V.Local.sTemp)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.String.Rpad(V.Local.sTemp," ",551,V.Local.sTemp)
+	'Add line to variable that will be written to PURORDER.txt
+	F.Intrinsic.String.Concat(V.Local.sTempFull,V.Local.sTemp,V.Ambient.NewLine,V.Local.sTempFull)
+	
+	'Return upload text
+	F.Intrinsic.Variable.AddRV("POTEXT",V.Local.sTempFull)
+
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.GenerateGroupedPOs.End
+
+Program.Sub.Serialize.Start
+v.Local.sSerialize.Declare
+f.Intrinsic.Control.Try
+
+f.Intrinsic.Control.If(v.DataTable.dtInvCheck.Exists, =, False)
+f.Intrinsic.Control.ExitSub
+f.Intrinsic.Control.EndIf
+
+gui.f_PO.GsGCPO.Serialize("gvInvCheck", v.Local.sSerialize)
+f.Global.Registry.AddValue(v.Caller.User, v.Caller.CompanyCode, "gvInvCheck", 5672, 1000, False, "Serialize", False, 0, -999.0, 1/1/1980, 12:00:00 AM, v.Local.sSerialize)
+
+f.Intrinsic.Control.Catch
+f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.Serialize.End
+
+Program.Sub.Deserialize.Start
+v.Local.sSerialize.Declare
+f.Intrinsic.Control.Try
+f.Global.Registry.ReadValue(v.Caller.User, v.Caller.CompanyCode, "gvInvCheck", 5672, 0, 5, "", v.Local.sSerialize)
+f.Intrinsic.Control.If(v.Local.sSerialize, <>, "")
+	f.ODBC.Connection!common.OpenCommonConnection
+		f.ODBC.Connection!common.Execute("delete from GS_REGISTRY where REG_ID = '5672'")
+	f.ODBC.Connection!common.Close
+f.Intrinsic.Control.EndIf
+
+f.Global.Registry.ReadValue(v.Caller.User, v.Caller.CompanyCode, "gvInvCheck", "5672", 1000, 6, "", v.Local.sSerialize)
+f.Intrinsic.Control.If(v.Local.sSerialize.Trim, <>, "")
+	gui.f_PO.GsGCPO.Deserialize(v.Local.sSerialize)
+f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.Catch
+f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.Deserialize.End
+
+Program.Sub.GsGCWO_ColumnFilterChanged.Start
+'f.Intrinsic.UI.Msgbox(v.Args.ActiveFilterExpression)
+
+
+Program.Sub.GsGCWO_ColumnFilterChanged.End
+
+Program.Sub.GridViewFilterToDataViewFilter.Start
+'this sub is for converting the active filter string of a gridview into a dataview friendly version
+'FILTER	-	The Active Filter String
+'will return FILTER
+'valid operators: =, >, <, >=, <=, <>, in, is null, not, like
+V.Local.sFilter.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.iCounter.Declare(Long)
+V.Local.sFields.Declare(String)
+V.Local.sTemp.Declare(String)
+V.Local.sTemp2.Declare(String)
+V.Local.sFindString.Declare(String)
+V.Local.sReplaceString.Declare(String)
+V.Local.sValues.Declare(String)
+V.Local.sValueReturn.Declare(String)
+V.Local.sFieldReturn.Declare(String)
+V.Local.sValueRegEx.Declare(String, "\'[^']*\'")
+V.Local.sFieldRegEx.Declare(String, "\[[A-Za-z0-9_-]+\]")
+V.Local.sNumberRegEx.Declare(String, "-?[0-9]+(\.[0-9]+)?")
+V.Local.sRegEx.Declare(String)
+V.Local.sMatch.Declare(String)
+V.Local.ilength.Declare(Long)
+V.Local.sValueReturn2.Declare(String)
+V.Local.sFilter.Set(V.Args.Filter)
+
+
+'fix all IsNullOrEmpty
+F.Intrinsic.String.Build("IsNullOrEmpty\({0}\)", V.Local.sFieldRegEx, V.Local.sRegEx)
+F.Intrinsic.String.RegExMatch(V.Local.sFilter, V.Local.sRegEx, True, V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet.Trim, !=, "")
+	F.Intrinsic.String.Split(V.Local.sRet, "@!@", V.Local.sRet)
+	F.Intrinsic.Control.For(V.Local.iCounter, 0, V.Local.sRet.UBound, 1)
+		'get match
+		F.Intrinsic.String.Split(V.Local.sRet(V.Local.iCounter), "*!*", V.Local.sTemp)
+		V.Local.sMatch.Set(V.Local.sTemp(1))
+		'get the field, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sFieldRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sFieldReturn.Set(V.Local.sTemp(1))
+		'Replace
+		F.Intrinsic.String.Build("({0} is Null or {0} = '')", V.Local.sFieldReturn, V.Local.sReplaceString)
+		F.Intrinsic.String.Replace(V.Local.sFilter, V.Local.sMatch, V.Local.sReplaceString, V.Local.sFilter)
+	F.Intrinsic.Control.Next(V.Local.iCounter)
+F.Intrinsic.Control.EndIf
+'fix all StartsWith
+F.Intrinsic.String.Build("StartsWith\({0},\s*{1}\)", V.Local.sFieldRegEx, V.Local.sValueRegEx, V.Local.sRegEx)
+F.Intrinsic.String.RegExMatch(V.Local.sFilter, V.Local.sRegEx, True, V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet.Trim, !=, "")
+	F.Intrinsic.String.Split(V.Local.sRet, "@!@", V.Local.sRet)
+	F.Intrinsic.Control.For(V.Local.iCounter, 0, V.Local.sRet.UBound, 1)
+		'get match
+		F.Intrinsic.String.Split(V.Local.sRet(V.Local.iCounter), "*!*", V.Local.sTemp)
+		V.Local.sMatch.Set(V.Local.sTemp(1))
+		'get the field, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sFieldRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sFieldReturn.Set(V.Local.sTemp(1))
+		'get the value, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sValueRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sValueReturn.Set(V.Local.sTemp(1))
+		F.Intrinsic.String.TrimChar(V.Local.sValueReturn, "'", V.Local.sValueReturn)
+		'Replace
+		F.Intrinsic.String.Build("{0} like '{1}%'", V.Local.sFieldReturn, V.Local.sValueReturn, V.Local.sReplaceString)
+		F.Intrinsic.String.Replace(V.Local.sFilter, V.Local.sMatch, V.Local.sReplaceString, V.Local.sFilter)
+	F.Intrinsic.Control.Next(V.Local.iCounter)
+F.Intrinsic.Control.EndIf
+'fix all EndsWith
+F.Intrinsic.String.Build("EndsWith\({0},\s*{1}\)", V.Local.sFieldRegEx, V.Local.sValueRegEx, V.Local.sRegEx)
+F.Intrinsic.String.RegExMatch(V.Local.sFilter, V.Local.sRegEx, True, V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet.Trim, !=, "")
+	F.Intrinsic.String.Split(V.Local.sRet, "@!@", V.Local.sRet)
+	F.Intrinsic.Control.For(V.Local.iCounter, 0, V.Local.sRet.UBound, 1)
+		'get match
+		F.Intrinsic.String.Split(V.Local.sRet(V.Local.iCounter), "*!*", V.Local.sTemp)
+		V.Local.sMatch.Set(V.Local.sTemp(1))
+		'get the field, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sFieldRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sFieldReturn.Set(V.Local.sTemp(1))
+		'get the value, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sValueRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sValueReturn.Set(V.Local.sTemp(1))
+		F.Intrinsic.String.TrimChar(V.Local.sValueReturn, "'", V.Local.sValueReturn)
+		'Replace
+		F.Intrinsic.String.Build("{0} like '%{1}'", V.Local.sFieldReturn, V.Local.sValueReturn, V.Local.sReplaceString)
+		F.Intrinsic.String.Replace(V.Local.sFilter, V.Local.sMatch, V.Local.sReplaceString, V.Local.sFilter)
+	F.Intrinsic.Control.Next(V.Local.iCounter)
+F.Intrinsic.Control.EndIf
+'fix all Contains
+F.Intrinsic.String.Build("Contains\({0},\s*{1}\)", V.Local.sFieldRegEx, V.Local.sValueRegEx, V.Local.sRegEx)
+F.Intrinsic.String.RegExMatch(V.Local.sFilter, V.Local.sRegEx, True, V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet.Trim, !=, "")
+	F.Intrinsic.String.Split(V.Local.sRet, "@!@", V.Local.sRet)
+	F.Intrinsic.Control.For(V.Local.iCounter, 0, V.Local.sRet.UBound, 1)
+		'get match
+		F.Intrinsic.String.Split(V.Local.sRet(V.Local.iCounter), "*!*", V.Local.sTemp)
+		V.Local.sMatch.Set(V.Local.sTemp(1))
+		'get the field, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sFieldRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sFieldReturn.Set(V.Local.sTemp(1))
+		'get the value, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sValueRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sValueReturn.Set(V.Local.sTemp(1))
+		F.Intrinsic.String.TrimChar(V.Local.sValueReturn, "'", V.Local.sValueReturn)
+		'Replace
+		F.Intrinsic.String.Build("{0} like '%{1}%'", V.Local.sFieldReturn, V.Local.sValueReturn, V.Local.sReplaceString)
+		F.Intrinsic.String.Replace(V.Local.sFilter, V.Local.sMatch, V.Local.sReplaceString, V.Local.sFilter)
+	F.Intrinsic.Control.Next(V.Local.iCounter)
+F.Intrinsic.Control.EndIf
+'fix between
+F.Intrinsic.String.Build("{0} Between\({1}m?, {1}m?\)", V.Local.sFieldRegEx, V.Local.sNumberRegEx, V.Local.sRegEx)
+F.Intrinsic.String.RegExMatch(V.Local.sFilter, V.Local.sRegEx, True, V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet.Trim, !=, "")
+	F.Intrinsic.String.Split(V.Local.sRet, "@!@", V.Local.sRet)
+	F.Intrinsic.Control.For(V.Local.iCounter, 0, V.Local.sRet.UBound, 1)
+		'get match
+		F.Intrinsic.String.Split(V.Local.sRet(V.Local.iCounter), "*!*", V.Local.sTemp)
+		V.Local.sMatch.Set(V.Local.sTemp(1))
+		'get the field, only one
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sFieldRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "*!*", V.Local.sTemp)
+		V.Local.sFieldReturn.Set(V.Local.sTemp(1))
+		'get the values, two
+		F.Intrinsic.String.RegExMatch(V.Local.sMatch, V.Local.sNumberRegEx, True, V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp, "@!@", V.Local.sTemp)
+		F.Intrinsic.String.Split(V.Local.sTemp(0), "*!*", V.Local.sTemp2)
+		V.Local.sValueReturn.Set(V.Local.sTemp2(1))
+		F.Intrinsic.String.Split(V.Local.sTemp(1), "*!*", V.Local.sTemp2)
+		V.Local.sValueReturn2.Set(V.Local.sTemp2(1))
+		'Replace
+		F.Intrinsic.String.Build("({0} >= {1} and {0} <= {2})", V.Local.sFieldReturn, V.Local.sValueReturn, V.Local.sValueReturn2, V.Local.sReplaceString)
+		F.Intrinsic.String.Replace(V.Local.sFilter, V.Local.sMatch, V.Local.sReplaceString, V.Local.sFilter)
+	F.Intrinsic.Control.Next(V.Local.iCounter)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Variable.AddRV("FILTER", V.Local.sFilter)
+
+Program.Sub.GridViewFilterToDataViewFilter.End
+
+Program.Sub.GetWIPBinData.Start
+	v.Local.sSQL.Declare(string)
+	v.Local.iCnt.Declare(long)
+	v.Local.sFilter.Declare(string)
+	
+	f.Intrinsic.Control.Try
+		'Get all WIP bin data
+		f.ODBC.Connection!con.opencompanyconnection
+			f.Data.DataTable.CreateFromSQL("dtWIPBin","con","select JOB+SUFFIX+SEQUENCE AS JSS, BIN, QTY_BIN from v_wip_bin ORDER BY JOB+SUFFIX+SEQUENCE, BIN, QTY_BIN;")		
+			f.Data.DataTable.CreateFromSQL("dtWIPJobs","con","select distinct JOB+SUFFIX+SEQUENCE AS JSS from v_wip_bin;")	
+		f.ODBC.Connection!con.Close
+		
+		f.Data.DataTable.Create("dtWIPBinData1")
+		f.Data.DataTable.AddColumn("dtWIPBinData1","JSS","string")
+		f.Data.DataTable.AddColumn("dtWIPBinData1","Bin","string")
+		f.Data.DataTable.AddColumn("dtWIPBinData1","Qty","float")
+		f.Data.DataTable.Create("dtWIPBinData2")
+		f.Data.DataTable.AddColumn("dtWIPBinData2","JSS","string")
+		f.Data.DataTable.AddColumn("dtWIPBinData2","Bin","string")
+		f.Data.DataTable.AddColumn("dtWIPBinData2","Qty","float")
+		
+		f.Data.DataView.Create("dtWIPBin","dvWIPBin",22)
+		
+		'For each distinct job+suffix+seq, put the first one found in the first dict.  If another is found, put it into the second dict. 
+		f.Intrinsic.Control.For(v.Local.iCnt,0,v.DataTable.dtWIPJobs.RowCount--,1)
+			f.Intrinsic.String.Build("JSS='{0}'",v.DataTable.dtWIPJobs(v.Local.iCnt).JSS!FieldVal,v.Local.sFilter)
+			f.Data.DataView.SetFilter("dtWIPBin","dvWIPBin",v.Local.sFilter)
+			f.Data.DataTable.AddRow("dtWIPBinData1","JSS",v.DataTable.dtWIPJobs(v.Local.iCnt).JSS!FieldVal,"Bin",v.DataView.dtWIPBin!dvWIPBin(0).Bin!FieldVal,"Qty",v.DataView.dtWIPBin!dvWIPBin(0).Qty_Bin!FieldVal)
+			f.Intrinsic.Control.If(v.DataView.dtWIPBin!dvWIPBin.RowCount,>,1)
+				f.Data.DataTable.AddRow("dtWIPBinData2","JSS",v.DataTable.dtWIPJobs(v.Local.iCnt).JSS!FieldVal,"Bin",v.DataView.dtWIPBin!dvWIPBin(1).Bin!FieldVal,"Qty",v.DataView.dtWIPBin!dvWIPBin(1).Qty_Bin!FieldVal)
+			f.Intrinsic.Control.EndIf
+		f.Intrinsic.Control.Next(v.Local.iCnt)
+		
+		'Create dictionaries from these datatables
+		f.Data.Dictionary.createfromdatatable("dictBin1","dtWIPBinData1","JSS","Bin")
+		f.Data.Dictionary.createfromdatatable("dictBin2","dtWIPBinData2","JSS","Bin")
+		f.Data.Dictionary.createfromdatatable("dictQty1","dtWIPBinData1","JSS","Qty")
+		f.Data.Dictionary.createfromdatatable("dictQty2","dtWIPBinData2","JSS","Qty")
+		f.Data.Dictionary.SetDefaultReturn("dictBin1","")
+		f.Data.Dictionary.SetDefaultReturn("dictBin2","")
+		f.Data.Dictionary.SetDefaultReturn("dictQty1",0)
+		f.Data.Dictionary.SetDefaultReturn("dictQty2",0)
+		
+		'Fill these columns
+		f.Data.DataTable.FillFromDictionary(v.Args.DT,"dictBin1","JSS","WIPBin1")
+		f.Data.DataTable.FillFromDictionary(v.Args.DT,"dictBin2","JSS","WIPBin2")
+		f.Data.DataTable.FillFromDictionary(v.Args.DT,"dictQty1","JSS","WIPBinQty1")
+		f.Data.DataTable.FillFromDictionary(v.Args.DT,"dictQty2","JSS","WIPBinQty2")
+		
+		'Close the dict's
+		f.Data.Dictionary.Close("dictBin1")
+		f.Data.Dictionary.Close("dictBin2")
+		f.Data.Dictionary.Close("dictQty1")
+		f.Data.Dictionary.Close("dictQty2")
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.GetWIPBinData.End
+
+Program.Sub.MenuClickExportPickList.Start
+	f.Intrinsic.Control.Try
+		V.Local.sActive.Declare
+		V.Local.sfilter.Declare
+		v.Local.sFilePath.Declare(string)
+		v.Local.icnt.Declare(long)
+		v.Local.iRowCnt.Declare(long,3)
+		v.Local.bExcel.Declare(boolean)
+		v.Local.sSaveFilePath.Declare(string)
+
+		'Get the number of rows selected
+		f.Data.DataTable.acceptchanges("dtInvCheck")
+		
+		Gui.f_PO.GsGCPO.getGridviewProperty("gvInvCheck","ActiveFilterString",V.Local.sActive)
+		f.Intrinsic.Control.CallSub(GridViewFilterToDataViewFilter,"Filter",V.Local.sActive)
+		
+		f.Data.DataView.SetFilter("dtinvcheck","dvInvCheck",V.args.filter)
+		f.Intrinsic.Control.If(v.DataView.dtInvCheck!dvInvCheck.RowCount,=,0)
+			f.Intrinsic.UI.Msgbox("No lines available for Pick List Export.  Operation Cancelled.")
+		f.Intrinsic.Control.Else
+			f.Automation.MSExcel.CheckPresence(v.local.bExcel)
+			f.Intrinsic.Control.If(v.Local.bExcel)
+				f.Intrinsic.UI.InvokeWaitDialog("Building picklist in Excel...","Please Wait")
+				f.Intrinsic.UI.ChangeWaitStatus("Building picklist in Excel...",0,0,v.DataView.dtInvCheck!dvInvCheck.RowCount--)
+				gui.f_PO.GsGCPO.enabled(False)
+				
+				'Prompt user where to save the file
+				f.Intrinsic.UI.ShowSaveFileDialog("MaterialPicklist","Microsoft Excel Workbook[.xlsx]|*.xlsx",v.Local.sSaveFilePath)
+				'f.Intrinsic.UI.ShowSaveFileDialog(v.Caller.LocalGSSTempDir,"Microsoft Excel 97-2003[.xls]","MaterialPickList","Save File As",v.Local.sSaveFilePath)
+				f.Intrinsic.Control.If(v.Local.sSaveFilePath,=,"***CANCEL***")
+					gui.f_PO.GsGCPO.enabled(True)
+					f.Intrinsic.UI.CloseWaitDialog
+					f.Intrinsic.Control.ExitSub
+				f.Intrinsic.Control.EndIf
+				
+				'Move the template file to the location of the user's choice
+				f.Intrinsic.String.Build("{0}\CUSTOM\GCG_5672\GCG_5672_WIPBinReport.xlsx",v.Caller.GlobalDir,v.Local.sFilePath)
+				f.Intrinsic.File.CopyOpenFile(v.Local.sFilePath,v.Local.sSaveFilePath)
+				
+				'Export the data from the dataview using a template
+				f.Automation.MSExcel.CreateAppObject("msXL")
+				
+				f.Automation.MSExcel.OpenWorkbook("msXL","xlWb",v.Local.sSaveFilePath)
+				f.Automation.MSExcel.OpenWorksheet("xlWb","xlWs",1)
+				f.Intrinsic.Control.For(v.Local.icnt,0,v.DataView.dtInvCheck!dvInvCheck.RowCount--,1)
+					'Set wait status
+					f.Intrinsic.UI.ChangeWaitStatus("Building picklist in Excel...",v.Local.icnt,0,v.DataView.dtInvCheck!dvInvCheck.RowCount--)
+					'Job
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,1,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).Job!FieldVal)
+					'Suffix
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,2,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).Suffix!FieldVal)
+					'Part
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,3,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).Part!FieldVal)
+					'Description
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,4,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).Description!FieldVal)
+					'Qty Reqd
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,5,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).qty_required!FieldVal)
+					'Qty Recvd
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,6,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).Qty_Received!FieldVal)
+					'Req_Fulfilled
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,7,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).ReqFulfilled!FieldVal)
+					'WIP Bin 1
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,8,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).WIPBin1!FieldVal)
+					'WIP Bin Qty 1
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,9,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).WIPBinQty1!FieldVal)
+					'WIP Bin 2
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,10,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).WIPBin2!FieldVal)
+					'WIP Bin Qty 2
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,11,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).WIPBinQty2!FieldVal)
+					'Vendor
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,12,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).NAME_VENDOR!FieldVal)
+					'PO
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,13,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).PO!FieldVal)
+					'Ship Addr 1
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,14,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).PO_Addr1!FieldVal)
+					'Net Qty
+					f.Automation.MSExcel.WriteCell("xlWs",v.Local.iRowCnt,15,v.DataView.dtInvCheck!dvInvCheck(v.Local.icnt).Net_Qty!FieldVal)
+					
+					'Increment row count
+					f.Intrinsic.Math.Add(v.Local.iRowCnt,1,v.Local.iRowCnt)
+				f.Intrinsic.Control.Next(v.Local.icnt)
+				
+				'Save changes
+				f.Automation.MSExcel.SaveWorkbook("xlWb")
+				
+				f.Intrinsic.UI.ChangeWaitStatus("Opening Excel Workbook...")
+				'Open file
+				F.Intrinsic.Task.ShellExec(0,"",v.Local.sSaveFilePath,"","",1)
+			f.Intrinsic.Control.Else
+				f.Intrinsic.UI.Msgbox("Excel is not installed on this machine.  Operation terminating.")
+			f.Intrinsic.Control.EndIf
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.Finally
+		'Destroy all Excel objects
+		f.Automation.MSExcel.DestroyAllObjects("msXL","xlWb","xlWs")
+		gui.f_PO.GsGCPO.enabled(True)
+		f.Intrinsic.UI.CloseWaitDialog
+	f.Intrinsic.Control.EndTry
+Program.Sub.MenuClickExportPickList.End
+
+Program.Sub.Initialize.Start
+'	v.Local.bExists.Declare(boolean)
+'	v.Local.sFilePath.Declare(string)
+'	v.Local.sDocFilePath.Declare(string)
+'	
+'	'Checks presence of project specific custom folder
+'	f.Intrinsic.String.Build("{0}\CUSTOM\GCG_5672",V.Caller.GlobalDir,V.Local.sFilePath)
+'	f.Intrinsic.File.DirExists(v.Local.sFilePath,v.Local.bExists)
+'	f.Intrinsic.Control.If(v.Local.bExists,=,False)
+'		f.Intrinsic.File.CreateDir(v.Local.sFilePath)
+'	f.Intrinsic.Control.EndIf
+'	
+'	'Moves template document from Docs to Custom
+'	f.Intrinsic.String.Build("{0}\GCG_5672_WIPBinReport.xlsx",v.Local.sFilePath,v.Local.sFilePath)
+'	f.Intrinsic.String.Build("{0}\GCG_5672_WIPBinReport.xlsx",v.Caller.DocDir,v.Local.sDocFilePath)
+'	f.Intrinsic.File.Exists(v.Local.sFilePath,v.Local.bExists)
+'	f.Intrinsic.Control.If(v.Local.bExists,=,False)
+'		f.Intrinsic.File.CopyOpenFile(v.Local.sDocFilePath,v.Local.sFilePath)
+'	f.Intrinsic.Control.EndIf
+Program.Sub.Initialize.End
+
+Program.Sub.CheckPermissions.Start
+	f.Intrinsic.Control.Try
+		V.Local.sError.Declare
+		v.Local.bChecked.Declare(boolean,false)
+		v.Local.bEditPO.Declare(boolean,False)
+	
+		'Check if the User has permission to open Purchase Orders
+		Function.Global.Security.CheckUserAccessIPM(265,1,v.Local.bEditPO)'Purchasing > File > Purchase Orders Manual > Open
+		F.Intrinsic.Control.IF(V.local.bEditPO,=,True)
+			Gui.f_PO.GsGCPO.SetGridviewProperty("gvInvCheck","Editable","True")		
+			gui.f_PO.lblMode.Caption("Mode: Edit")
+			gui.f_PO.cmdBrowseSpreadsheet.Enabled(True)
+		F.Intrinsic.Control.Else
+			Gui.f_PO.GsGCPO.SetGridviewProperty("gvInvCheck","Editable","False")	
+			gui.f_PO.lblMode.Caption("Mode: Read-Only")
+			gui.f_PO.cmdBrowseSpreadsheet.Enabled(False)
+		F.Intrinsic.Control.EndIF
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.CheckPermissions.End
+
+Program.Sub.FillItemInfo.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String, "")
+	V.Local.sSql.Declare(String, "")
+	V.Local.sFilter.Declare(String, "")
+	V.Local.iPart.Declare(Long, 0)
+	V.Local.sBins.Declare(String, "")
+	
+	F.ODBC.Connection!conx.OpenCompanyConnection
+	
+	'We are going to create a dictionary for the parts to calculate the available quantity for the parts
+	F.Data.Dictionary.CreateFromSQL("dicQtyAlloc", "conx", "Select LTrim(Rtrim(Part)) + LTrim(Rtrim(Location)), SUM(QUANTITY) from V_ITEM_MASTER where ALLOCATED = 'Y' group by PART, Location")
+	F.Data.Dictionary.SetDefaultReturn("dicQtyAlloc", 0.0)
+	
+	F.Data.DataTable.AddColumn("dtInvCheck", "Qty_Alloc", "Float")
+	F.Data.DataTable.AddColumn("dtInvCheck", "Qty_AllocPart", "Float")
+	
+	F.Data.DataTable.AddExpressionColumn("dtInvCheck", "PartLoc", "String", "[Part] + [Location]")
+	F.Data.DataTable.FillFromDictionary("dtInvCheck", "dicQtyAlloc", "PartLoc", "Qty_Alloc")
+	F.Data.DataTable.FillFromDictionary("dtInvCheck", "dicQtyAlloc", "Part", "Qty_AllocPart")
+	
+	F.Data.Dictionary.Close("dicQtyAlloc")
+	
+	F.Data.Dictionary.CreateFromSQL("dicQtyWOAlloc", "conx", "Select RTrim(Ltrim(Heat)), SUM(QUANTITY) from V_ITEM_MASTER where ALLOCATED = 'Y' group by Heat")
+	F.Data.Dictionary.SetDefaultReturn("dicQtyWOAlloc", 0.0)
+	
+	F.Data.DataTable.AddColumn("dtInvCheck", "Qty_WO_Alloc", "Float")
+	
+	F.Data.DataTable.FillFromDictionary("dtInvCheck", "dicQtyWOAlloc", "JSS", "Qty_WO_Alloc")
+	
+	F.Data.Dictionary.Close("dicQtyWOAlloc")
+	
+	F.Data.DataTable.AddExpressionColumn("dtInvCheck", "Qty_available", "Float", "[Qty_OnHand] - [Qty_Alloc]")
+	F.Data.DataTable.AddExpressionColumn("dtInvCheck", "Qty_Required", "Float", "[Hrs_Est] - [Qty_WO_Alloc]")
+	
+	F.Data.DataTable.AddColumn("dtInvCheck", "ALLOCBUTT", "String", "ALLOCATE")
+	
+	'We have to make a dictionary for bins, since they want to be able to see all bins that a part is currently in...
+	F.Data.DataView.ToDataTableDistinct("dtInvCheck", "dvInvCheck", "dtForBins", "JSS")
+	
+	F.Data.DataTable.CreateFromSQL("dtBins", "conx", "select distinct Heat, Bin from V_ITEM_MASTER where ALLOCATED = 'Y' and QUANTITY > 0 and ALLOC_TYPE = 'W'")
+	F.Data.Dictionary.Create("dicBins")
+	
+	F.Intrinsic.Control.For(V.Local.iPart, 0, V.DataTable.dtForBins.RowCount--, 1)
+		'We're going to have to access Pervasive to see what bins that part is located at.. and save the value in the dictionary
+		F.Intrinsic.String.Build("[Heat] = '{0}'", V.DataTable.dtForBins(V.Local.iPart).JSS!FieldValTrim, V.Local.sFilter)
+		F.Data.DataView.Create("dtBins", "dvBinsTemp", 22, V.Local.sFilter, "BIN ASC")
+		F.Data.DataView.ToString("dtBins", "dvBinsTemp", "BIN", "", ", ", V.Local.sBins)
+		F.Data.Dictionary.AddItem("dicBins", V.DataTable.dtForBins(V.Local.iPart).JSS!FieldValTrim, V.Local.sBins)
+		F.Data.DataView.Close("dtBins", "dvBinsTemp")		
+	F.Intrinsic.Control.Next(V.Local.iPart)
+	
+	F.Data.Dictionary.SetDefaultReturn("dicBins", "")
+	
+	F.Data.DataTable.AddColumn("dtInvCheck", "Bins", "String")
+	F.Data.Datatable.FillFromDictionary("dtInvCheck", "dicBins", "JSS", "Bins")
+	
+	F.Data.Dictionary.Close("dicBins")
+	
+	F.Data.DataTable.Close("dtBins")
+	F.Data.DataTable.Close("dtForBins")
+	
+	F.ODBC.Connection!conx.Close
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.FillItemInfo.End
+
+Program.Sub.PartAllocation.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String, "")
+	V.Local.sPartRev.Declare(String, "")
+	V.Local.sPart.Declare(String, "")
+	V.Local.sRev.Declare(String, "")
+	V.Local.sLoc.Declare(String, "")
+	V.Local.sJob.Declare(String, "")
+	V.Local.sSuffix.Declare(String, "")
+	V.Local.sSeq.Declare(String, "")
+	V.Local.sParams.Declare(String, "")
+	V.Local.sSql.Declare(String, "")
+	V.Local.sBins.Declare(String, "")
+	V.Local.sRet.Declare(String, "")
+	V.Local.sHeat.Declare(String, "")
+	V.Local.sFilter.Declare(String, "")
+	V.Local.fQuant.Declare(Float, 0.0)
+	V.Local.fAlloc.Declare(Float, 0.0)
+	V.Local.iCount.Declare(Long, 0)
+	
+	Gui.f_PO.GsGCPO.Enabled(False)
+	
+	'This subroutine is going to do part allocations to the selected line (WO/Suffix/Sequence). 
+	'We start with teh bin that has the smallest quantity and fill as much of the the WO's request until it is depleted, then move on to the bin with teh next biggest quantity.
+	Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","PART",V.Args.RowIndex,v.Local.sPartRev)
+	Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","LOCATION",V.Args.RowIndex,v.Local.sLoc)
+	Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","JOB",V.Args.RowIndex,v.Local.sJob)
+	Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","SUFFIX",V.Args.RowIndex,v.Local.sSuffix)
+	Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","SEQ",V.Args.RowIndex,v.Local.sSeq)
+	Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","JSS",V.Args.RowIndex,v.Local.sHeat)
+	Gui.f_PO.GsGCPO.GetCellValueByColumnName("gvInvCheck","Qty_Required",V.Args.RowIndex,v.Local.fQuant)
+	
+	F.ODBC.Connection!conx.OpenCompanyConnection
+	
+	F.Intrinsic.String.Build("Select LOT, BIN, HEAT, SERIAL_NUMBER, QUANTITY From ITEM_MASTER where PART = '{0}' and LOCATION = '{1}' and ALLOCATED = '' and QUANTITY > 0 order by QUANTITY ASC", V.Local.sPartRev, V.Local.sLoc, V.Local.sSql)
+	F.Data.DataTable.CreateFromSQL("dtItemQty", "conx", V.Local.sSql)
+	
+	F.Intrinsic.String.RPad(V.Local.sPartRev, " ", 20, V.Local.sPartRev)
+	
+	F.Intrinsic.String.Right(V.Local.sPartRev, 3, V.Local.sRev)
+	F.Intrinsic.String.Left(V.Local.sPartRev, 17, V.Local.sPart)
+	
+	F.Intrinsic.Control.For(V.Local.iCount, 0, V.DataTable.dtItemQty.RowCount--, 1)
+		
+		'If the quantity in bin has enough to fulfill the request, we are going to allocate the required qty, otherwise we allocate the entire quantity in the bin and save how mucm more we need
+		F.Intrinsic.Control.If(V.DataTable.dtItemQty.QUANTITY(V.Local.iCount)!FieldValFloat, >=, V.Local.fQuant)
+			V.Local.fAlloc.Set(V.Local.fQuant)
+			
+		F.Intrinsic.Control.Else
+			V.Local.fAlloc.Set(V.DataTable.dtItemQty.QUANTITY(V.Local.iCount)!FieldValFloat)
+			
+		F.Intrinsic.Control.EndIf
+		
+		'Callwrapper 7103 is used to allocate parts to a work order. The parameters are Part(17), Rev(3), Location, Lot, Bin, Heat, Serial, Quantity, Work Order, Suffix, Sequence
+		F.Intrinsic.String.ConcatCallWrapperArgs(V.Local.sPart, V.Local.sRev, V.Local.sLoc, V.DataTable.dtItemQty.LOT(V.Local.iCount)!FieldValTrim, V.DataTable.dtItemQty.BIN(V.Local.iCount)!FieldValTrim, V.DataTable.dtItemQty.HEAT(V.Local.iCount)!FieldValTrim, V.DataTable.dtItemQty.SERIAL_NUMBER(V.Local.iCount)!FieldValTrim, V.Local.fAlloc, V.Local.sJob, V.Local.sSuffix, V.Local.sSeq, V.Local.sParams)
+		F.Global.General.CallWrapperSync(7103, V.Local.sParams)
+		
+		F.Intrinsic.String.Build("{0}{1}, ", V.Local.sBins, V.DataTable.dtItemQty.BIN(V.Local.iCount)!FieldValTrim, V.Local.sBins)
+		
+		F.Intrinsic.Math.Sub(V.Local.fQuant, V.Local.fAlloc, V.Local.fQuant)
+		
+		F.Intrinsic.Control.If(V.Local.fQuant, =, 0)
+			V.Local.iCount.Set(V.DataTable.dtItemQty.RowCount--)
+		F.Intrinsic.Control.EndIf
+		
+	F.Intrinsic.Control.Next(V.Local.iCount)
+	
+	'we want to update the grid with the bins that were used, as well as the qty information
+	F.Intrinsic.String.Build("{0}*!*", V.Local.sBins, V.Local.sBins)
+	F.Intrinsic.String.Replace(V.Local.sBins, ", *!*", "", V.Local.sBins)
+	
+	F.Intrinsic.String.Build("Select SUM(QUANTITY) from V_ITEM_MASTER where ALLOCATED = 'Y' and Heat = '{0}'", V.Local.sHeat, V.Local.sSql)
+	f.ODBC.Connection!conx.ExecuteAndReturn(V.Local.sSql, V.Local.sRet)
+	V.Local.fAlloc.Set(V.Local.sRet.Float)
+	
+	F.Intrinsic.String.Build("[JOB] = '{0}' and [Suffix] = '{1}' and [Seq] = '{2}' and Part = '{3}' and Location = '{4}'", V.Local.sJob, V.Local.sSuffix, V.Local.sSeq, V.Local.sPartRev.Trim, V.Local.sLoc, V.Local.sFilter)
+	F.Data.DataView.Create("dtInvCheck", "dvBinUpdate", 22, V.Local.sFilter, "")
+	
+	F.Data.DataView.SetValue("dtInvCheck", "dvBinUpdate", -1, "BINS", V.Local.sBins, "QTY_WO_ALLOC", V.Local.fAlloc)
+	
+	F.Data.DataView.Close("dtInvCheck", "dvBinUpdate")
+	
+	F.Intrinsic.String.Build("Select SUM(QUANTITY) from V_ITEM_MASTER where Part = '{0}' and Location = '{1}' and ALLOCATED = 'Y'", V.Local.sPartRev.Trim, V.Local.sLoc, V.Local.sSql)
+	F.ODBC.Connection!conx.ExecuteAndReturn(V.Local.sSql, V.Local.sRet)
+	V.Local.fAlloc.Set(V.Local.sRet.Float)
+	
+	F.Intrinsic.String.Build("[Part] = '{0}' and [Location] = '{1}'", V.Local.sPartRev.Trim, V.Local.sLoc, V.Local.sFilter)
+	F.Data.DataView.Create("dtInvCheck", "dvAllocUpdate", 22, V.Local.sFilter, "")
+	
+	F.Data.DataView.SetValue("dtInvCheck", "dvAllocUpdate", -1, "QTY_ALLOC", V.Local.fAlloc, "QTY_ALLOCPART", V.Local.fAlloc)
+	
+	F.Data.DataView.Close("dtInvCheck", "dvAllocUpdate")
+	
+	F.ODBC.Connection!conx.Close
+	
+	Gui.f_PO.GsGCPO.Enabled(True)
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.PartAllocation.End
+
+Program.Sub.FillItemInfoV2.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String, "")
+	V.Local.sSql.Declare(String, "")
+	V.Local.sFilter.Declare(String, "")
+	V.Local.iPart.Declare(Long, 0)
+	V.Local.sBins.Declare(String, "")
+	
+	F.ODBC.Connection!conx.OpenCompanyConnection
+	
+	'We are going to create a dictionary for the parts to calculate the available quantity for the parts
+	F.Data.Dictionary.CreateFromSQL("dicQtyAlloc", "conx", "Select LTrim(Rtrim(Part)) + LTrim(Rtrim(Location)), SUM(QUANTITY) from V_ITEM_MASTER where ALLOCATED = 'Y' group by PART, Location")
+	F.Data.Dictionary.SetDefaultReturn("dicQtyAlloc", 0.0)
+	
+	F.Data.DataTable.AddColumn("dtInvCheckTemp", "Qty_Alloc", "Float")
+	F.Data.DataTable.AddColumn("dtInvCheckTemp", "Qty_AllocPart", "Float")
+	
+	F.Data.DataTable.AddExpressionColumn("dtInvCheckTemp", "PartLoc", "String", "[Part] + [Location]")
+	F.Data.DataTable.FillFromDictionary("dtInvCheckTemp", "dicQtyAlloc", "PartLoc", "Qty_Alloc")
+	F.Data.DataTable.FillFromDictionary("dtInvCheckTemp", "dicQtyAlloc", "Part", "Qty_AllocPart")
+	
+	F.Data.Dictionary.Close("dicQtyAlloc")
+	
+	F.Data.Dictionary.CreateFromSQL("dicQtyWOAlloc", "conx", "Select RTrim(Ltrim(Heat)), SUM(QUANTITY) from V_ITEM_MASTER where ALLOCATED = 'Y' group by Heat")
+	F.Data.Dictionary.SetDefaultReturn("dicQtyWOAlloc", 0.0)
+	
+	F.Data.DataTable.AddColumn("dtInvCheckTemp", "Qty_WO_Alloc", "Float")
+	
+	F.Data.DataTable.FillFromDictionary("dtInvCheckTemp", "dicQtyWOAlloc", "JSS", "Qty_WO_Alloc")
+	
+	F.Data.Dictionary.Close("dicQtyWOAlloc")
+	
+	F.Data.DataTable.AddExpressionColumn("dtInvCheckTemp", "Qty_available", "Float", "[Qty_OnHand] - [Qty_Alloc]")
+	F.Data.DataTable.AddExpressionColumn("dtInvCheckTemp", "Qty_Required", "Float", "[Hrs_Est] - [Qty_WO_Alloc]")
+	
+	F.Data.DataTable.AddColumn("dtInvCheckTemp", "ALLOCBUTT", "String", "ALLOCATE")
+	
+	f.Data.DataView.SetFilter("dtInvCheckTemp","dvInvCheckTemp","")
+	
+	'We have to make a dictionary for bins, since they want to be able to see all bins that a part is currently in...
+	F.Data.DataView.ToDataTableDistinct("dtInvCheckTemp", "dvInvCheckTemp", "dtForBins", "JSS")
+	
+	F.Data.DataTable.CreateFromSQL("dtBins", "conx", "select distinct Heat, Bin from V_ITEM_MASTER where ALLOCATED = 'Y' and QUANTITY > 0 and ALLOC_TYPE = 'W'")
+	F.Data.Dictionary.Create("dicBins")
+	
+	F.Intrinsic.Control.For(V.Local.iPart, 0, V.DataTable.dtForBins.RowCount--, 1)
+		'We're going to have to access Pervasive to see what bins that part is located at.. and save the value in the dictionary
+		F.Intrinsic.String.Build("[Heat] = '{0}'", V.DataTable.dtForBins(V.Local.iPart).JSS!FieldValTrim, V.Local.sFilter)
+		F.Data.DataView.Create("dtBins", "dvBinsTemp", 22, V.Local.sFilter, "BIN ASC")
+		F.Data.DataView.ToString("dtBins", "dvBinsTemp", "BIN", "", ", ", V.Local.sBins)
+		F.Data.Dictionary.AddItem("dicBins", V.DataTable.dtForBins(V.Local.iPart).JSS!FieldValTrim, V.Local.sBins)
+		F.Data.DataView.Close("dtBins", "dvBinsTemp")		
+	F.Intrinsic.Control.Next(V.Local.iPart)
+	
+	F.Data.Dictionary.SetDefaultReturn("dicBins", "")
+	
+	F.Data.DataTable.AddColumn("dtInvCheckTemp", "Bins", "String")
+	F.Data.Datatable.FillFromDictionary("dtInvCheckTemp", "dicBins", "JSS", "Bins")
+	
+	F.Data.Dictionary.Close("dicBins")
+	
+	F.Data.DataTable.Close("dtBins")
+	F.Data.DataTable.Close("dtForBins")
+	
+	F.ODBC.Connection!conx.Close
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.FillItemInfoV2.End
+
+Program.Sub.AllocateSelected.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String, "")
+	V.Local.sActive.Declare(String, "")
+	V.Local.sFilter.Declare(String, "")
+	V.Local.sSql.Declare(String, "")
+	V.Local.sPartRev.Declare(String, "")
+	V.Local.sPart.Declare(String, "")
+	V.Local.sRev.Declare(String, "")
+	V.Local.sLoc.Declare(String, "")
+	V.Local.sParams.Declare(String, "")
+	V.Local.sJob.Declare(String, "")
+	V.Local.sSuffix.Declare(String, "")
+	V.Local.sSeq.Declare(String, "")
+	V.Local.sBins.Declare(String, "")
+	V.Local.sHeat.Declare(String, "")
+	V.Local.sRet.Declare(String, "")
+	V.Local.fAlloc.Declare(Float, 0.00)
+	V.Local.fQuant.Declare(Float, 0.00)
+	V.Local.iRow.Declare(Long, 0)
+	V.Local.iCount.Declare(Long, 0)
+	V.Local.iLimit.Declare(Long, 0)
+	
+	'We will be doing the part allocation but for all lines selected
+	'Get the number of rows selected
+	f.Data.DataTable.acceptchanges("dtInvCheck")
+	
+	Gui.f_PO.GsGCPO.getGridviewProperty("gvInvCheck","ActiveFilterString",V.Local.sActive)
+	f.Intrinsic.Control.CallSub(GridViewFilterToDataViewFilter,"Filter",V.Local.sActive)
+	f.Intrinsic.Control.If(V.Local.sActive,<>,"")
+		f.Intrinsic.String.Build("{0} and Select = True and Qty_Required > 0",V.Args.Filter,V.Local.sFilter)
+	f.Intrinsic.Control.else
+		f.Intrinsic.String.Build(" Select = True and Qty_Required > 0","",V.Local.sFilter)
+	f.Intrinsic.Control.endif
+	
+	F.Data.DataView.Create("dtInvCheck", "dvGroupAlloc", 22, V.Local.sFilter, "")
+	
+	f.Intrinsic.Control.If(V.DataView.dtInvCheck!dvGroupAlloc.RowCount,=,0)
+		f.Intrinsic.UI.Msgbox("No line selected for allocations.  Operation Cancelled.")
+	f.Intrinsic.Control.Else
+		gui.f_PO.GsGCPO.enabled(False)
+		
+		F.ODBC.Connection!conx.OpenCompanyConnection
+		V.Local.iLimit.Set(V.DataView.dtInvCheck!dvGroupAlloc.RowCount--)
+		
+		F.Data.DataView.ToDataTable("dtInvCheck", "dvGroupAlloc", "dtAllocations")
+		
+		F.Intrinsic.Control.For(V.Local.iRow, 0, V.Local.iLimit, 1)
+		
+			V.Local.sPartRev.Set(V.DataTable.dtAllocations(V.Local.iRow).PART!FieldValTrim)
+			V.Local.sLoc.Set(V.DataTable.dtAllocations(V.Local.iRow).LOCATION!FieldValTrim)
+			V.Local.sJob.Set(V.DataTable.dtAllocations(V.Local.iRow).JOB!FieldValTrim)
+			V.Local.sSuffix.Set(V.DataTable.dtAllocations(V.Local.iRow).SUFFIX!FieldValTrim)
+			V.Local.sSeq.Set(V.DataTable.dtAllocations(V.Local.iRow).SEQ!FieldValTrim)
+			V.Local.sHeat.Set(V.DataTable.dtAllocations(V.Local.iRow).JSS!FieldValTrim)
+			V.Local.fQuant.Set(V.DataTable.dtAllocations(V.Local.iRow).Qty_Required!FieldValTrim)
+			F.Intrinsic.Control.If(V.DataTable.dtAllocations(V.Local.iRow).Bins!FieldValTrim, <>, "")
+				F.Intrinsic.String.Build("{0}, ", V.DataTable.dtAllocations(V.Local.iRow).Bins!FieldValTrim, V.Local.sBins)
+			F.Intrinsic.Control.Else
+				V.Local.sBins.Set("")
+			F.Intrinsic.Control.EndIf
+			
+			F.Intrinsic.String.Build("Select LOT, BIN, HEAT, SERIAL_NUMBER, QUANTITY From ITEM_MASTER where PART = '{0}' and LOCATION = '{1}' and ALLOCATED = '' and QUANTITY > 0 order by QUANTITY ASC", V.Local.sPartRev, V.Local.sLoc, V.Local.sSql)
+			F.Data.DataTable.CreateFromSQL("dtItemQty", "conx", V.Local.sSql)
+			
+			F.Intrinsic.String.RPad(V.Local.sPartRev, " ", 20, V.Local.sPartRev)
+			
+			F.Intrinsic.String.Right(V.Local.sPartRev, 3, V.Local.sRev)
+			F.Intrinsic.String.Left(V.Local.sPartRev, 17, V.Local.sPart)
+			
+			F.Intrinsic.Control.For(V.Local.iCount, 0, V.DataTable.dtItemQty.RowCount--, 1)
+				
+				'If the quantity in bin has enough to fulfill the request, we are going to allocate the required qty, otherwise we allocate the entire quantity in the bin and save how mucm more we need
+				F.Intrinsic.Control.If(V.DataTable.dtItemQty.QUANTITY(V.Local.iCount)!FieldValFloat, >=, V.Local.fQuant)
+					V.Local.fAlloc.Set(V.Local.fQuant)
+					
+				F.Intrinsic.Control.Else
+					V.Local.fAlloc.Set(V.DataTable.dtItemQty.QUANTITY(V.Local.iCount)!FieldValFloat)
+					
+				F.Intrinsic.Control.EndIf
+				
+				'Callwrapper 7103 is used to allocate parts to a work order. The parameters are Part(17), Rev(3), Location, Lot, Bin, Heat, Serial, Quantity, Work Order, Suffix, Sequence
+				F.Intrinsic.String.ConcatCallWrapperArgs(V.Local.sPart, V.Local.sRev, V.Local.sLoc, V.DataTable.dtItemQty.LOT(V.Local.iCount)!FieldValTrim, V.DataTable.dtItemQty.BIN(V.Local.iCount)!FieldValTrim, V.DataTable.dtItemQty.HEAT(V.Local.iCount)!FieldValTrim, V.DataTable.dtItemQty.SERIAL_NUMBER(V.Local.iCount)!FieldValTrim, V.Local.fAlloc, V.Local.sJob, V.Local.sSuffix, V.Local.sSeq, V.Local.sParams)
+				F.Global.General.CallWrapperSync(7103, V.Local.sParams)
+				
+				F.Intrinsic.String.Build("{0}{1}, ", V.Local.sBins, V.DataTable.dtItemQty.BIN(V.Local.iCount)!FieldValTrim, V.Local.sBins)
+				
+				F.Intrinsic.Math.Sub(V.Local.fQuant, V.Local.fAlloc, V.Local.fQuant)
+				
+				F.Intrinsic.Control.If(V.Local.fQuant, =, 0)
+					V.Local.iCount.Set(V.DataTable.dtItemQty.RowCount--)
+				F.Intrinsic.Control.EndIf
+				
+			F.Intrinsic.Control.Next(V.Local.iCount)
+			
+			F.Data.DataTable.Close("dtItemQty")
+			
+			'we want to update the grid with the bins that were used, as well as the qty information
+			F.Intrinsic.String.Build("{0}*!*", V.Local.sBins, V.Local.sBins)
+			F.Intrinsic.String.Replace(V.Local.sBins, ", *!*", "", V.Local.sBins)
+			
+			F.Intrinsic.String.Build("Select SUM(QUANTITY) from V_ITEM_MASTER where ALLOCATED = 'Y' and Heat = '{0}'", V.Local.sHeat, V.Local.sSql)
+			f.ODBC.Connection!conx.ExecuteAndReturn(V.Local.sSql, V.Local.sRet)
+			V.Local.fAlloc.Set(V.Local.sRet.Float)
+			
+			F.Intrinsic.String.Build("[JOB] = '{0}' and [Suffix] = '{1}' and [Seq] = '{2}' and Part = '{3}' and Location = '{4}'", V.Local.sJob, V.Local.sSuffix, V.Local.sSeq, V.Local.sPartRev.Trim, V.Local.sLoc, V.Local.sFilter)
+			F.Data.DataView.Create("dtInvCheck", "dvBinUpdate", 22, V.Local.sFilter, "")
+			
+			F.Data.DataView.SetValue("dtInvCheck", "dvBinUpdate", -1, "BINS", V.Local.sBins, "QTY_WO_ALLOC", V.Local.fAlloc)
+			
+			F.Data.DataView.Close("dtInvCheck", "dvBinUpdate")
+			
+			F.Intrinsic.String.Build("Select SUM(QUANTITY) from V_ITEM_MASTER where Part = '{0}' and Location = '{1}' and ALLOCATED = 'Y'", V.Local.sPartRev.Trim, V.Local.sLoc, V.Local.sSql)
+			F.ODBC.Connection!conx.ExecuteAndReturn(V.Local.sSql, V.Local.sRet)
+			V.Local.fAlloc.Set(V.Local.sRet.Float)
+			
+			F.Intrinsic.String.Build("[Part] = '{0}' and [Location] = '{1}'", V.Local.sPartRev.Trim, V.Local.sLoc, V.Local.sFilter)
+			F.Data.DataView.Create("dtInvCheck", "dvAllocUpdate", 22, V.Local.sFilter, "")
+			
+			F.Data.DataView.SetValue("dtInvCheck", "dvAllocUpdate", -1, "QTY_ALLOC", V.Local.fAlloc, "QTY_ALLOCPART", V.Local.fAlloc)
+			
+			F.Data.DataView.Close("dtInvCheck", "dvAllocUpdate")
+			
+		F.Intrinsic.Control.Next(V.Local.iRow)
+			
+		F.ODBC.Connection!conx.Close
+	
+		Gui.f_PO.GsGCPO.Enabled(True)
+		
+		F.Data.DataTable.Close("dtAllocations")
+	
+	f.Intrinsic.Control.EndIf
+	
+	F.Data.DataView.Close("dtInvCheck", "dvGroupAlloc")
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.AllocateSelected.End
